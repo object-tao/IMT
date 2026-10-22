@@ -3,6 +3,7 @@ import { flagNames, type Catalog, type Demand, type Lane, type Leg, type Candida
 import { nextDeparture, zoneDate, localToEpoch } from './time.js';
 import { priceRate, totals } from './pricing.js';
 import { sameCity } from './geography.js';
+import { nextFlight,selectionId } from './flights.js';
 
 function compatibility(lane: Lane, request: Demand): { warnings: string[]; errors: string[] } {
   const warnings: string[] = [], errors: string[] = [];
@@ -29,19 +30,30 @@ function compatibility(lane: Lane, request: Demand): { warnings: string[]; error
   return { warnings: [...new Set(warnings)], errors: [...new Set(errors)] };
 }
 
-function makeLeg(lane: Lane, request: Demand, catalog: Catalog, earliest: number): { leg?: Leg; reason?: string } {
+function makeLeg(lane: Lane, request: Demand, catalog: Catalog, earliest: number,flightId?:string): { leg?: Leg; reason?: string } {
   const from = catalog.nodes.find(n => n.id === lane.from), to = catalog.nodes.find(n => n.id === lane.to);
   if (!from || !to) return { reason: '节点不存在' };
   const fit = compatibility(lane, request);
   if (fit.errors.length) return { reason: fit.errors.join('、') };
+  if(lane.validityUnknown)fit.warnings.push('航线经营有效期待确认');
   let ready = earliest + lane.handlingHours * 3600000;
   if (zoneDate(ready, from.timeZone) < lane.validFrom) ready = localToEpoch(lane.validFrom, '00:00', from.timeZone) ?? ready;
   let departure = ready;
-  if (!lane.onDemand && lane.schedule) {
+  let flight:Leg['flight'],timingUnknown=false;
+  const rules=(catalog.flights ?? []).filter(f=>f.laneId===lane.id);
+  if(flightId&&!rules.some(f=>f.id===flightId))return {reason:'选定的飞行时刻不存在，请重新选择'};
+  if(lane.fromAirportId||rules.length){
+    const options=rules.filter(f=>!flightId||f.id===flightId).map(f=>nextFlight(f,rules,lane,ready,from.timeZone)).filter((f):f is NonNullable<Leg['flight']>=>!!f).sort((a,b)=>Date.parse(a.offBlockAt)-Date.parse(b.offBlockAt));
+    flight=options[0];
+    if(!flight&&rules.length)return {reason:'有效期内无可衔接飞行时刻（含已取消、过期或错过截货的班次）'};
+    if(flight){departure=Date.parse(flight.offBlockAt);if(flight.rule.cutoffHours===null)fit.warnings.push('截货时间待确认');if(flight.rule.status!=='confirmed')fit.warnings.push('飞行时刻为供应商计划，执行待确认');}
+    else{timingUnknown=true;fit.warnings.push('航线未维护飞行时刻，仅展示方案框架，发运及送达时间待确认');}
+  } else if (!lane.onDemand && lane.schedule) {
     const value = nextDeparture(ready, lane.schedule, lane.validFrom, lane.validTo);
     if (value === undefined) return { reason: '有效期内无可衔接班期' };
     departure = value;
-  } else if (!lane.onDemand) fit.warnings.push('班期未维护，出发时间仅作估算');
+  } else if (!lane.onDemand) {timingUnknown=true;fit.warnings.push('班期未维护，发运及送达时间待确认');}
+  if(!flight&&lane.transitHours===undefined){timingUnknown=true;fit.warnings.push('运输耗时待确认');}
   const date = zoneDate(departure, from.timeZone);
   if (date < lane.validFrom || date > lane.validTo) return { reason: '线路不在有效期内' };
   const prices = catalog.rates.filter(r => r.laneId === lane.id && r.validFrom <= date && r.validTo >= date).map(r => priceRate(r, request, catalog, date)).filter(p => p !== undefined);
@@ -54,20 +66,25 @@ function makeLeg(lane: Lane, request: Demand, catalog: Catalog, earliest: number
     if (service.status === 'excluded') fit.warnings.push(`${service.name}未包含，相关费用待另行确认`);
   }
   if (lane.mode === 'road' && (from.type === 'city' || to.type === 'city')) fit.warnings.push('CITY_PRICE:城市覆盖范围计价，具体地址确认后可能调整');
-  return { leg: { laneId: lane.id, name: lane.name, supplierName: catalog.suppliers.find(s => s.id === lane.supplierId)?.name ?? '供应商待确认', from, to, mode: lane.mode, departure: new Date(departure).toISOString(), arrival: new Date(departure + lane.transitHours * 3600000).toISOString(), missing: false, warnings: fit.warnings, price, services: lane.services } };
+  return { leg: { laneId: lane.id,...(flight?{selectionId:`flight|${lane.id}|${flight.rule.id}`,flight}:{}),timingUnknown, name: lane.name, supplierName: catalog.suppliers.find(s => s.id === lane.supplierId)?.name ?? '供应商待确认', from, to, mode: lane.mode, departure: new Date(departure).toISOString(), arrival: flight?.onBlockAt ?? new Date(departure + (lane.transitHours ?? 0) * 3600000).toISOString(), missing: false, warnings: fit.warnings, price, services: lane.services } };
 }
 function gapLeg(from: TransportNode, to: TransportNode, earliest: number): Leg {
   return { laneId: `gap|${from.id}|${to.id}`, name: '缺失接驳段', supplierName: '待补充', from, to, mode: 'transfer', departure: new Date(earliest).toISOString(), arrival: new Date(earliest).toISOString(), missing: true, warnings: ['缺失运输段：费用与接驳时间均待确认'], services: [] };
 }
+function propagateTiming(leg:Leg,previous:Leg[]){
+  if(previous.some(l=>l.missing||l.timingUnknown)&&!leg.missing){leg.timingUnknown=true;leg.warnings.push('前序段耗时待确认，当前班次衔接及送达时间需重新核实');}
+  return leg;
+}
 function summarize(legs: Leg[], request: Demand): Candidate {
   const warnings = [...new Set(legs.flatMap(l => l.warnings.map(w => `${l.name}：${w.replace('CITY_PRICE:', '')}`)))];
   const priceComplete = legs.every(l => !l.missing && l.price?.cny !== undefined);
-  const complete = priceComplete && legs.every(l => l.warnings.every(w => w.startsWith('CITY_PRICE:')));
+  const timingComplete=legs.every(l=>!l.missing&&!l.timingUnknown);
+  const complete = timingComplete && priceComplete && legs.every(l => l.warnings.every(w => w.startsWith('CITY_PRICE:')));
   const knownCny = legs.reduce((sum,l) => sum.plus(l.price?.cny ?? 0), new Decimal(0)).toDecimalPlaces(2).toNumber();
   const arrival = legs.at(-1)!.arrival;
-  const hours = (Date.parse(arrival) - Date.parse(request.readyAt)) / 3600000;
-  const lateHours = request.deadline ? Math.max(0, (Date.parse(arrival) - Date.parse(request.deadline)) / 3600000) : 0;
-  return { id: legs.map(l => l.laneId).join('>'), legs, warnings, complete, priceComplete, knownCny, ...(priceComplete ? { totalCny: knownCny } : {}), arrival, hours, lateHours, badges: [] };
+  const hours = timingComplete?(Date.parse(arrival) - Date.parse(request.readyAt)) / 3600000:legs.reduce((n,l)=>n+(l.missing?0:(Date.parse(l.arrival)-Date.parse(l.departure))/3600000),0);
+  const lateHours = timingComplete&&request.deadline ? Math.max(0, (Date.parse(arrival) - Date.parse(request.deadline)) / 3600000) : 0;
+  return { id: legs.map(selectionId).join('>'), legs, warnings, complete,timingComplete, priceComplete, knownCny, ...(priceComplete ? { totalCny: knownCny } : {}), arrival, hours, lateHours, badges: [] };
 }
 function network(catalog: Catalog, request: Demand) {
   const origin = catalog.nodes.filter(n => sameCity(n,{country:request.originCountry,city:request.originCity,cityId:request.originCityId})), destination = catalog.nodes.filter(n => sameCity(n,{country:request.destinationCountry,city:request.destinationCity,cityId:request.destinationCityId}));
@@ -92,9 +109,11 @@ export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[
       if (!from || !to || !sameCity(from,to) || from.id === to.id) throw new Error('无效的待补全接驳段');
       leg = gapLeg(from, to, earliest);
     } else {
-      const lane = catalog.lanes.find(l => l.id === id);
+      const parts=id.startsWith('flight|')?id.split('|'):undefined;
+      if(parts&&parts.length!==3)throw new Error('无效飞行时刻选择');
+      const lane = catalog.lanes.find(l => l.id === (parts?.[1] ?? id));
       if (!lane) throw new Error('运输资源不存在');
-      const evaluated = makeLeg(lane, request, catalog, earliest);
+      const evaluated = makeLeg(lane, request, catalog, earliest,parts?.[2]);
       if (!evaluated.leg) throw new Error(`${lane.name}：${evaluated.reason}`);
       leg = evaluated.leg;
     }
@@ -102,7 +121,7 @@ export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[
     if (!visited.size) visited.add(leg.from.id);
     if (visited.has(leg.to.id)) throw new Error('运输方案包含循环');
     visited.add(leg.to.id);
-    legs.push(leg);
+    legs.push(propagateTiming(leg,legs));
   }
   if (!ends.some(n => n.id === legs.at(-1)!.to.id)) throw new Error('方案未到达目的城市覆盖点');
   return summarize(legs, request);
@@ -122,10 +141,13 @@ export function solve(catalog: Catalog, request: Demand): SolveResult {
     const earliest = legs.length ? Date.parse(legs.at(-1)!.arrival) : Date.parse(request.readyAt);
     for (const lane of adjacent.get(current.id) ?? []) {
       if (visited.has(lane.to)) continue;
-      const evaluated = makeLeg(lane, request, catalog, earliest);
-      if (!evaluated.leg) { rejected.add(`${lane.name}：${evaluated.reason}`); continue; }
-      walk(evaluated.leg.to, [...legs, evaluated.leg], new Set([...visited, lane.to]), gaps);
-      if (truncated) return;
+      const rules=(catalog.flights ?? []).filter(f=>f.laneId===lane.id&&f.status!=='archived'&&f.status!=='cancelled');
+      for(const flightId of rules.length?rules.map(f=>f.id):[undefined]){
+        const evaluated = makeLeg(lane, request, catalog, earliest,flightId);
+        if (!evaluated.leg) { rejected.add(`${lane.name}：${evaluated.reason}`); continue; }
+        walk(evaluated.leg.to, [...legs, propagateTiming(evaluated.leg,legs)], new Set([...visited, lane.to]), gaps);
+        if (truncated) return;
+      }
     }
     if (gaps < 2 && !legs.at(-1)?.missing) {
       for (const next of nodes.filter(n => sameCity(n,current) && !visited.has(n.id))) {
@@ -152,6 +174,6 @@ export function solve(catalog: Catalog, request: Demand): SolveResult {
   const diagnostics = [...(!starts.length ? ['起运城市没有运输节点，请先维护资源'] : []), ...(!ends.length ? ['目的城市没有运输节点，请先维护资源'] : [])];
   if (!candidates.length) diagnostics.push('未找到可衔接的方案，请检查方向、节点、承运限制、班期和有效期', ...[...rejected].slice(0, 20));
   if (truncated) diagnostics.push('已达到搜索上限，结果为候选子集；推荐仅在本次已找到的方案中比较');
-  if (candidates.some(c => c.legs.some(l => l.missing))) diagnostics.push('含缺失接驳段的方案，其到达时间不包含未知接驳耗时，不能据此承诺交期');
+  if (candidates.some(c => !c.timingComplete)) diagnostics.push('含缺失接驳或未知班期的方案仅展示框架，发运、衔接及送达时间待确认');
   return { candidates, diagnostics, truncated, explored };
 }

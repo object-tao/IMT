@@ -26,8 +26,10 @@ export class Database {
       await tx.query('CREATE TABLE IF NOT EXISTS demands (id TEXT PRIMARY KEY, payload TEXT NOT NULL, created_at TEXT NOT NULL)');
       await tx.query('CREATE TABLE IF NOT EXISTS audit_events (id TEXT PRIMARY KEY, action TEXT NOT NULL, subject TEXT NOT NULL, created_at TEXT NOT NULL)');
       await tx.query('CREATE TABLE IF NOT EXISTS road_routes (cache_key TEXT PRIMARY KEY, provider TEXT NOT NULL, request_payload TEXT NOT NULL, route_payload TEXT NOT NULL, queried_at TEXT NOT NULL)');
+      await tx.query('CREATE TABLE IF NOT EXISTS flight_revisions (flight_id TEXT NOT NULL, version INTEGER NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(flight_id,version))');
       await tx.query('INSERT INTO migrations(version,applied_at) VALUES(1,?) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
       await tx.query('INSERT INTO migrations(version,applied_at) VALUES(3,?) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
+      await tx.query('INSERT INTO migrations(version,applied_at) VALUES(4,?) ON CONFLICT(version) DO NOTHING', [new Date().toISOString()]);
     });
   }
   async query(sql: string, params: unknown[] = []) {

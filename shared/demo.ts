@@ -35,7 +35,7 @@ export function demoCatalog(): Catalog {
   ];
   const rate = (id: string, laneId: string, price: number, currency = 'CNY', unit = 'shipment') => rateSchema.parse({ id, laneId, name: '示例参考运价', price, currency, unit, validFrom: base.validFrom, validTo: base.validTo, minimum: 0, surcharges: [] });
   const rates = [rate('r-dom', 'l-dom', 3, 'CNY', 'kg'), rate('r-transfer', 'l-transfer', 500), rate('r-air-a', 'l-air-a', 25, 'CNY', 'chargeableKg'), rate('r-air-b', 'l-air-b', 21, 'CNY', 'chargeableKg'), rate('r-uk-a', 'l-uk-a', 160, 'GBP'), rate('r-uk-b', 'l-uk-b', 260, 'GBP'), rate('r-port', 'l-port', 800), rate('r-sea', 'l-sea', 65, 'USD', 'cbm'), rate('r-fel', 'l-fel', 500, 'GBP'), rate('r-rail', 'l-rail', 1000, 'CNY', 'cbm'), rate('r-eu', 'l-eu', 550, 'EUR')];
-  return { suppliers, nodes, lanes, rates, fx: [{ id: 'fx-gbp', version: 1, currency: 'GBP', toCny: 9.3, validFrom: base.validFrom, validTo: base.validTo }, { id: 'fx-usd', version: 1, currency: 'USD', toCny: 7.1, validFrom: base.validFrom, validTo: base.validTo }, { id: 'fx-eur', version: 1, currency: 'EUR', toCny: 8, validFrom: base.validFrom, validTo: base.validTo }] };
+  return { suppliers, airports:[], flights:[], nodes, lanes, rates, fx: [{ id: 'fx-gbp', version: 1, currency: 'GBP', toCny: 9.3, validFrom: base.validFrom, validTo: base.validTo }, { id: 'fx-usd', version: 1, currency: 'USD', toCny: 7.1, validFrom: base.validFrom, validTo: base.validTo }, { id: 'fx-eur', version: 1, currency: 'EUR', toCny: 8, validFrom: base.validFrom, validTo: base.validTo }] };
 }
 export function demoDemand(): Demand {
   const ready = new Date(); ready.setUTCDate(ready.getUTCDate() + 1); ready.setUTCHours(0, 0, 0, 0);

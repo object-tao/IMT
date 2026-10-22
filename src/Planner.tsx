@@ -1,3 +1,4 @@
+import { timingKnown } from '../shared/flights';
 import { useState } from 'react';
 import { Plus, Trash2, ArrowRight, Package, Sparkles, Clock3, Route, Plane, Truck, Ship, TrainFront, CircleCheck, CircleAlert } from 'lucide-react';
 import { cargoFlags, flagNames, modeNames, type Catalog, type Demand, type Candidate, type SolveResult } from '../shared/model';
@@ -57,8 +58,9 @@ function CandidateCard({ candidate: c,index,open }: { candidate: Candidate; inde
     <div className="candidate-top"><span className="candidate-number">方案 {String(index + 1).padStart(2,'0')}</span><div className="badges">{c.badges.map(b => <span key={b} className="badge teal">{b}</span>)}<span className={`badge ${c.complete ? 'neutral' : 'amber'}`}>{c.complete ? '资料完整' : '待确认'}</span></div></div>
     <h3 className="city-path">{cities.map((city,i) => <span key={i}>{i > 0 && <ArrowRight size={15}/>} {city}</span>)}</h3>
     <div className="mode-route">{c.legs.map((l,i) => <span key={i} className={l.missing ? 'missing-leg' : ''}><ModeIcon mode={l.mode}/>{l.missing ? '缺失接驳' : modeNames[l.mode]}{i < c.legs.length - 1 && <span className="route-dash"/>}</span>)}</div>
-    <div className="candidate-metrics"><div><small>{c.priceComplete ? '运输段参考费用' : '已知费用小计'}</small><strong><span>¥</span>{fmt(c.knownCny)}</strong>{!c.priceComplete && <em>部分费用待补充</em>}</div><div><small>{c.legs.some(l => l.missing) ? '已知耗时（不含缺失段）' : '预计总耗时'}</small><strong>{fmt(c.hours / 24)}<span> 天</span></strong><em>{dateTime(c.arrival)} 预计到达</em></div><div className="candidate-action"><button className="button secondary" onClick={open}>查看与调整<ArrowRight size={15}/></button></div></div>
-    {c.lateHours > 0 && <div className="candidate-alert"><Clock3 size={14}/>按已知耗时预计晚到 {fmt(c.lateHours / 24)} 天</div>}
+    {c.legs.filter(l=>l.flight).map((l,i)=><p className="candidate-flight" key={i}>航班 {l.flight!.rule.flightNumber} · 撤轮 {dateTime(l.flight!.offBlockAt)}（北京时间）{l.timingUnknown?' · 衔接待确认':''}</p>)}
+    <div className="candidate-metrics"><div><small>{c.priceComplete ? '运输段参考费用' : '已知费用小计'}</small><strong><span>¥</span>{fmt(c.knownCny)}</strong>{!c.priceComplete && <em>部分费用待补充</em>}</div><div><small>{!timingKnown(c) ? '已知段参考运输耗时' : '预计总耗时'}</small><strong>{fmt(c.hours / 24)}<span> 天</span></strong><em>{timingKnown(c)?`${dateTime(c.arrival)} 预计到达`:'送达时间待确认'}</em></div><div className="candidate-action"><button className="button secondary" onClick={open}>查看与调整<ArrowRight size={15}/></button></div></div>
+    {timingKnown(c) && c.lateHours > 0 && <div className="candidate-alert"><Clock3 size={14}/>按已知耗时预计晚到 {fmt(c.lateHours / 24)} 天</div>}
     {!c.complete && <div className="candidate-alert"><CircleAlert size={14}/>{c.warnings.length} 项资料待确认，请查看详情</div>}
   </article>;
 }

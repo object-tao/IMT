@@ -9,7 +9,8 @@ import { resolve } from 'node:path';
 import { z, ZodError } from 'zod';
 import { Database } from './database.js';
 import { Store, AppError } from './store.js';
-import { kinds, schemas, requestSchema, nodeSchema } from '../shared/model.js';
+import { kinds, schemas, requestSchema, nodeSchema,airportSchema } from '../shared/model.js';
+import { previewAirImport } from './air-import.js';
 import { countries, countryCode } from '../shared/geography.js';
 import { Geography } from './geography.js';
 import { RoadService } from './road.js';
@@ -75,6 +76,13 @@ export async function createApp(options: { database?: Database; geography?: Geog
     reply.clearCookie('imt_session', { path: '/' }); return { ok: true };
   });
   app.get('/api/catalog', async () => store.catalog());
+  const bindResource=(kind:string,input:any)=>{
+    if(kind==='nodes')return geography.bindNode(nodeSchema.parse(input),true);
+    if(kind==='airports'){const airport=airportSchema.parse(input),bound=geography.bindNode({...airport,type:'airport'},true);return {...airport,city:bound.city,cityId:bound.cityId};}
+    return input;
+  };
+  app.post('/api/air-import/preview',{bodyLimit:8*1024*1024},async req=>previewAirImport(req.body,await store.catalog()));
+  app.get('/api/flights/:id/history',async req=>(await db.query('SELECT payload,created_at FROM flight_revisions WHERE flight_id=? ORDER BY version DESC',[(req.params as {id:string}).id])).map(row=>({flight:JSON.parse(row.payload),changedAt:row.created_at})));
   app.get('/api/road/status',async()=>road.status());
   app.post('/api/road/query',{config:{rateLimit:{max:20,timeWindow:'1 minute'}}},async req=>road.query(req.body,geography,db));
   app.get('/api/geo/countries',async()=>({items:countries,metadata:geography.metadata(),available:geography.available}));
@@ -84,11 +92,11 @@ export async function createApp(options: { database?: Database; geography?: Geog
     return geography.search(query.country,query.q,query.offset,query.limit);
   });
   for (const kind of kinds) {
-    app.post(`/api/resources/${kind}`, async (req, reply) => reply.code(201).send(await store.upsert(kind, kind==='nodes' ? geography.bindNode(nodeSchema.parse(req.body),true) : req.body, true)));
+    app.post(`/api/resources/${kind}`, async (req, reply) => reply.code(201).send(await store.upsert(kind,bindResource(kind,req.body), true)));
     app.put(`/api/resources/${kind}/:id`, async req => {
       const { id } = req.params as { id: string };
       if ((req.body as any)?.id !== id) throw new AppError(400, '资源 ID 不一致');
-      return store.upsert(kind, kind==='nodes' ? geography.bindNode(nodeSchema.parse(req.body),true) : req.body, false);
+      return store.upsert(kind,bindResource(kind,req.body), false);
     });
     app.delete(`/api/resources/${kind}/:id`, async req => {
       const { id } = req.params as { id: string }, { version } = z.object({ version: z.coerce.number().int().positive() }).parse(req.query);
@@ -99,6 +107,7 @@ export async function createApp(options: { database?: Database; geography?: Geog
     const body = z.object(Object.fromEntries(kinds.map(k => [k, z.array(z.unknown()).max(10000).optional()]))).strict().parse(req.body);
     const imported=body as Record<string, unknown[]>;
     if(imported.nodes)imported.nodes=imported.nodes.map(node=>geography.bindNode(nodeSchema.parse(node),true));
+    if(imported.airports)imported.airports=imported.airports.map(airport=>bindResource('airports',airport));
     return store.importCatalog(imported);
   });
   app.post('/api/catalog/demo', async () => {const demo=demoCatalog();demo.nodes=demo.nodes.map(n=>geography.bindNode(nodeSchema.parse(n)));return store.importCatalog(demo,true);});

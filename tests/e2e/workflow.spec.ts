@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { airFixture } from '../air-fixture';
 test('从资源体验到生成、调整、保存、客户文档及档案', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -71,4 +72,49 @@ test('运输节点从全球城市库选择并带入当地时区',async({page})=>
   await expect(page.getByLabel('当地时区（如 Europe/London）')).toHaveValue('America/New_York');
   await page.getByRole('button',{name:'保存运输节点'}).click();
   await expect(page.locator('.resource-table')).toContainText('纽约测试覆盖点');
+});
+
+test('机场航线可先保存，独立时刻编辑留历史，供应商表格预览后导入并去重',async({page,request})=>{
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  const fixture=airFixture().catalog;
+  const seed=await request.post('/api/catalog/import',{data:{suppliers:fixture.suppliers,airports:fixture.airports}});expect(seed.ok()).toBe(true);
+  await page.goto('/');await page.getByRole('button',{name:/资源网络/}).click();
+  const supplierRow=page.locator('.resource-table tr').filter({hasText:'虚构航空测试供应商'});await supplierRow.getByRole('button',{name:'查看线路'}).click();
+  await page.getByRole('button',{name:'新增分段线路'}).click();
+  await page.getByLabel('名称',{exact:true}).fill('浏览器测试航空航线');await page.getByLabel('运输方式',{exact:true}).selectOption('air');
+  await page.getByLabel('起飞机场搜索').fill('CTU');await page.getByRole('combobox',{name:'起飞机场',exact:true}).selectOption('test-ctu');
+  await page.getByLabel('目的机场搜索').fill('布拉格');await page.getByRole('combobox',{name:'目的机场',exact:true}).selectOption('test-prg');
+  await page.getByRole('button',{name:'保存分段线路'}).click();await expect(page.locator('.resource-table')).toContainText('发运待确认');
+  await page.getByRole('button',{name:'飞行时刻 (0)',exact:true}).click();await expect(page.getByText('尚未维护飞行时刻')).toBeVisible();
+  await page.getByRole('button',{name:'新增飞行时刻'}).click();await page.getByLabel('航班号',{exact:true}).fill('XX2468');
+  await page.getByLabel('撤轮时间',{exact:true}).fill('03:00');await page.getByLabel('起飞时间',{exact:true}).fill('03:20');await page.getByLabel('落地时间',{exact:true}).fill('13:00');await page.getByLabel('挡轮时间',{exact:true}).fill('13:15');
+  await page.getByLabel('生效日期',{exact:true}).fill('2026-10-01');await page.getByLabel('失效日期',{exact:true}).fill('2026-10-31');
+  await page.getByRole('button',{name:'保存飞行时刻'}).click();await expect(page.locator('.resource-table')).toContainText('XX2468');
+  await page.getByRole('button',{name:'编辑 XX2468',exact:true}).click();await page.getByLabel('撤轮时间',{exact:true}).fill('03:05');await page.getByRole('button',{name:'保存飞行时刻'}).click();
+  await page.getByRole('button',{name:'历史',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('V2');await expect(page.getByRole('dialog')).toContainText('03:00');await page.getByRole('button',{name:'关闭',exact:true}).click();
+  await page.getByRole('button',{name:'导入航线时刻',exact:true}).click();
+  const file={name:'fictional-browser.csv',mimeType:'text/csv',buffer:Buffer.from('起飞机场,目的机场,航班号,撤轮时间,起飞时间,落地时间,挡轮时间,班期,执行日期,执飞机型\nCTU,PRG,XX9876,06:00,06:20,16:00,16:15,1,10月1-25日,TEST-F')};
+  await page.getByLabel('资料年份').fill('2026');await page.getByLabel('默认月份').fill('10');await page.getByLabel('航空时刻文件').setInputFiles(file);
+  await page.getByRole('button',{name:'解析并预览',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('新增航线 0 条 · 新增时刻 1 条');
+  await page.getByRole('button',{name:'确认导入数据库'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('.resource-table')).toContainText('XX9876');
+  await page.getByRole('button',{name:'导入航线时刻',exact:true}).click();await page.getByLabel('航空时刻文件').setInputFiles(file);await page.getByRole('button',{name:'解析并预览',exact:true}).click();
+  await expect(page.getByRole('dialog')).toContainText('已有相同时刻 1 条');await expect(page.getByRole('button',{name:'确认导入数据库'})).toBeDisabled();await page.getByRole('dialog').getByRole('button',{name:'关闭',exact:true}).first().click();
+  await page.reload();await page.getByRole('button',{name:/资源网络/}).click();await page.locator('.tabs').getByRole('button',{name:/飞行时刻/}).click();await expect(page.locator('.resource-table')).toContainText('XX9876');
+  await page.locator('.tabs').getByRole('button',{name:/机场/}).click();await expect(page.locator('.resource-table')).toContainText('Europe/Prague');
+  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
+});
+
+test('不同航班分别生成候选，选择和重新校验后保存的仍是指定子时刻',async({page,request})=>{
+  const {catalog:c,flight:f}=airFixture(),current=await (await request.get('/api/catalog')).json();
+  const second={...f,id:'test-flight-b',flightNumber:'XX5678',offBlockTime:'05:00',takeoffTime:'05:20'};
+  const seed=await request.post('/api/catalog/import',{data:{suppliers:c.suppliers.filter(s=>!current.suppliers.some((v:any)=>v.id===s.id)),airports:c.airports.filter(a=>!current.airports.some((v:any)=>v.id===a.id)),nodes:c.nodes.filter(n=>!n.airportId),lanes:c.lanes,flights:[f,second]}});expect(seed.ok()).toBe(true);
+  await page.goto('/');await page.getByRole('combobox',{name:'起运城市',exact:true}).fill('成都');await page.getByRole('listbox',{name:'起运城市候选城市'}).getByRole('option').first().click();
+  await page.getByRole('combobox',{name:'目的国家',exact:true}).selectOption('CZ');await page.getByRole('combobox',{name:'目的城市',exact:true}).fill('Prague');await page.getByRole('listbox',{name:'目的城市候选城市'}).getByRole('option').first().click();
+  await page.getByLabel('最早可提货时间',{exact:true}).fill('2026-10-22T08:00');await page.getByLabel('货物名称 1',{exact:true}).fill('虚构航班选型测试');await page.getByRole('button',{name:'生成运输方案'}).click();
+  await expect(page.locator('.candidate-card').filter({hasText:'XX1234'}).first()).toBeVisible();
+  await page.locator('.candidate-card').filter({hasText:'XX5678'}).first().getByRole('button',{name:'查看与调整'}).click();
+  const selected='flight|air-test-lane|test-flight-b',chosen=page.locator('.leg-selector option:checked').filter({hasText:'XX5678'});await expect(chosen).toHaveAttribute('value',selected);await expect(page.getByRole('dialog')).toContainText('起飞');await expect(page.getByRole('dialog')).toContainText('落地');
+  await page.getByRole('button',{name:'重新校验'}).click();await expect(chosen).toHaveAttribute('value',selected);
+  const [saved]=await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/plans')&&r.request().method()==='POST'),page.getByRole('button',{name:'保存方案',exact:true}).click()]);expect(saved.ok()).toBe(true);expect((await saved.json()).candidate.legs.some((l:any)=>l.flight?.rule.id==='test-flight-b')).toBe(true);
+  await expect(page.getByText(/已保存版本 V1/)).toBeVisible();
 });

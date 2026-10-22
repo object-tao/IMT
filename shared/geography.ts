@@ -9,7 +9,9 @@ export function countryName(value?: string) { return value ? countries.find(c=>c
 export function normalizeCity(value: string) { return normalize(value).replace(/([\p{Script=Han}])市$/u,'$1'); }
 export function sameCountry(a: string,b: string) { const x=countryCode(a),y=countryCode(b); return !!x && x===y; }
 export function sameCity(a: {country:string;city:string;cityId?:string},b: {country:string;city:string;cityId?:string}) {
-  return sameCountry(a.country,b.country) && (a.cityId && b.cityId ? a.cityId===b.cityId : normalizeCity(a.city)===normalizeCity(b.city));
+  if(!sameCountry(a.country,b.country))return false;
+  if(a.cityId || b.cityId)return !!a.cityId && !!b.cityId && a.cityId===b.cityId;
+  return normalizeCity(a.city)===normalizeCity(b.city);
 }
 export type GeoCity = { id:string;country:string;name:string;nameEn:string;admin1:string;timeZone:string;latitude:number;longitude:number;population:number };
 export type GeoMetadata = { source:string;sourceUrl:string;license:string;licenseUrl:string;builtAt:string;countries:number;cities:number;countriesWithCities:number;scope:string };

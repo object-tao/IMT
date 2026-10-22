@@ -15,6 +15,7 @@ describe('国家与全球城市库',()=>{
   it('同名城市按国家和城市 ID 区分',()=>{
     expect(sameCity({country:'GB',city:'London'},{country:'CA',city:'London'})).toBe(false);
     expect(sameCity({country:'US',city:'Springfield',cityId:'1'},{country:'US',city:'Springfield',cityId:'2'})).toBe(false);
+    expect(sameCity({country:'US',city:'Springfield'},{country:'US',city:'Springfield',cityId:'1'})).toBe(false);
     expect(requestSchema.safeParse({...demoDemand(),originCountry:'CA',originCity:'London',originCityId:undefined,destinationCountry:'GB',destinationCity:'London',destinationCityId:undefined}).success).toBe(true);
     expect(requestSchema.safeParse({...demoDemand(),originCountry:'ZZ'}).success).toBe(false);
   });

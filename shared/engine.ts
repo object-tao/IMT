@@ -71,7 +71,7 @@ function summarize(legs: Leg[], request: Demand): Candidate {
 }
 function network(catalog: Catalog, request: Demand) {
   const origin = catalog.nodes.filter(n => sameCity(n,{country:request.originCountry,city:request.originCity,cityId:request.originCityId})), destination = catalog.nodes.filter(n => sameCity(n,{country:request.destinationCountry,city:request.destinationCity,cityId:request.destinationCityId}));
-  const cityNode = (id: string, city: string, representative: TransportNode): TransportNode => ({ id, version: 1, name: `${city}城市覆盖点`, city, country: representative.country, type: 'city', timeZone: representative.timeZone });
+  const cityNode = (id: string, city: string, representative: TransportNode): TransportNode => ({ id, version: 1, name: `${city}城市覆盖点`, city, cityId:representative.cityId, country: representative.country, type: 'city', timeZone: representative.timeZone });
   const originCityNodes = origin.filter(n => n.type === 'city'), destinationCityNodes = destination.filter(n => n.type === 'city');
   const starts = originCityNodes.length ? originCityNodes : origin.length ? [cityNode('__origin__', request.originCity, origin[0])] : [];
   const ends = destinationCityNodes.length ? destinationCityNodes : destination.length ? [cityNode('__destination__', request.destinationCity, destination[0])] : [];

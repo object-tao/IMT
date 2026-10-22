@@ -27,8 +27,9 @@ describe('多式联运方案', () => {
     expect(c.legs.some(l => l.missing)).toBe(true); expect(c.complete).toBe(false); expect(c.badges).toEqual([]);
   });
   it('不能从起运城市机场直接出发而绕过城市提货', () => {
-    const request = { ...demand(), originCity:'成都', originCityId:undefined };
+    const request = { ...demand(), originCity:'成都', originCityId:'1815286' };
     const result = solve(demoCatalog(),request);
+    expect(result.candidates.length).toBeGreaterThan(0);
     expect(result.candidates.every(c => c.legs[0].from.type === 'city' && c.legs[0].missing)).toBe(true);
   });
   it('明确不承运的货物被排除', () => {

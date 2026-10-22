@@ -1,0 +1,25 @@
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, HeadingLevel } from 'docx';
+import type { SavedPlan } from '../shared/model.js';
+import { modeNames, unitNames } from '../shared/model.js';
+const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+const stamp = (v: string) => new Date(v).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
+function content(plan: SavedPlan, internal: boolean) {
+  const p = plan.candidate, r = plan.request;
+  const rows = p.legs.map((l,i) => [String(i + 1), `${l.from.name} → ${l.to.name}`, modeNames[l.mode], ...(internal ? [l.supplierName] : []), `${stamp(l.departure)} → ${stamp(l.arrival)}`, l.price ? `${l.price.total.toFixed(2)} ${l.price.currency}（${l.price.quantity} ${unitNames[l.price.unit]}）` : '待询价']);
+  return { rows, headers: ['段', '路径', '方式', ...(internal ? ['供应商'] : []), '预计时间（北京时间）', '参考费用'], title: plan.title,
+    paragraphs: [`${internal ? '内部方案' : '客户方案'} · 版本 ${plan.version} · 保存于 ${stamp(plan.createdAt)}`, `${r.originCity} → ${r.destinationCity}`, `可提货：${stamp(r.readyAt)}；最晚送达：${r.deadline ? stamp(r.deadline) : '未指定'}`, ...r.cargo.map(c => `${c.name}：${c.pieces} 件，单件 ${c.lengthCm} × ${c.widthCm} × ${c.heightCm} cm，${c.weightKg} kg`), `预计到达：${stamp(p.arrival)}；预计总耗时：${p.hours.toFixed(1)} 小时${p.lateHours ? `；预计晚到 ${p.lateHours.toFixed(1)} 小时` : ''}`, `${p.priceComplete ? '已计运输段参考费用合计' : '已知费用小计（非完整报价）'}：CNY ${p.knownCny.toFixed(2)}`, `资料状态：${p.complete ? '已知资料校验通过' : '待补全／待确认'}`, '参考费用按维护的资源、运价及汇率计算；未包含或待确认服务另行确认。城市覆盖范围报价在具体地址确认后可能调整。舱位、运力及接单情况需供应商另行确认。', ...(p.legs.some(l => l.missing) ? ['含缺失运输段，到达时间未计入未知接驳耗时，不能据此承诺交期。'] : []), ...(internal && plan.notes ? [`内部备注：${plan.notes}`] : [])],
+    warnings: p.legs.flatMap((l,i) => l.warnings.map(w => `第 ${i + 1} 段：${w.replace('CITY_PRICE:', '')}`)),
+    services: p.legs.flatMap((l,i) => l.services.map(s => `第 ${i + 1} 段 ${s.name}：${({ included: '已包含', excluded: '未包含', unknown: '待确认' })[s.status]}`)),
+    breakdown: p.legs.flatMap((l,i) => l.price ? [`第 ${i + 1} 段：${l.price.quantity} ${unitNames[l.price.unit]} × ${l.price.unitPrice} ${l.price.currency}；基础运费（含最低收费规则）${l.price.freight}；${l.price.surcharges.map(s => `${s.name} ${s.amount}`).join('；') || '无附加费'}；汇率 ${l.price.exchangeRate ?? '待确认'}，折合 CNY ${l.price.cny ?? '待确认'}`] : [`第 ${i + 1} 段：待询价`]),
+  };
+}
+export function exportHtml(plan: SavedPlan, internal: boolean) {
+  const c = content(plan, internal);
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>IMT 运输方案</title><style>body{font:14px/1.7 "Microsoft YaHei",sans-serif;color:#152b40;max-width:1100px;margin:40px auto;padding:0 24px}h1{border-bottom:3px solid #136f69;padding-bottom:16px}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #cbd5df;padding:8px;text-align:left}th{background:#edf3f5}small{color:#65758b}button{padding:10px 20px;background:#136f69;color:white;border:0;border-radius:6px}@media print{button{display:none}body{margin:0;padding:0}tr{break-inside:avoid}thead{display:table-header-group}@page{size:A4 landscape;margin:15mm}}</style></head><body><button onclick="window.print()">打印 / 保存为 PDF</button><h1>${esc(c.title)}</h1>${c.paragraphs.map(p => `<p>${esc(p)}</p>`).join('')}<table><thead><tr>${c.headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${c.rows.map(row => `<tr>${row.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table><h2>计价明细</h2>${c.breakdown.map(w => `<p>${esc(w)}</p>`).join('')}<h2>配套服务</h2>${c.services.map(w => `<p>${esc(w)}</p>`).join('') || '<p>未维护，请确认报关、清关、仓储、保险等服务范围。</p>'}<h2>条件与待确认事项</h2>${c.warnings.map(w => `<p>${esc(w)}</p>`).join('') || '<p>已知资料校验通过，供应商接单与运力需另行确认。</p>'}<small>IMT · 方案快照，后续资源变更不改写此版本。全部时间按北京时间展示。</small></body></html>`;
+}
+export async function exportDocx(plan: SavedPlan, internal: boolean) {
+  const c = content(plan, internal);
+  const para = (text: string) => new Paragraph({ children: [new TextRun({ text, font: 'Microsoft YaHei', size: 21 })], spacing: { after: 150 } });
+  const doc = new Document({ creator: 'IMT', title: c.title, sections: [{ children: [new Paragraph({ text: c.title, heading: HeadingLevel.TITLE }), ...c.paragraphs.map(para), new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [c.headers, ...c.rows].map((r,i) => new TableRow({ tableHeader: i === 0, children: r.map(v => new TableCell({ children: [para(v)] })) })) }), new Paragraph({ text: '计价明细', heading: HeadingLevel.HEADING_2 }), ...c.breakdown.map(para), new Paragraph({ text: '配套服务', heading: HeadingLevel.HEADING_2 }), ...(c.services.length ? c.services : ['未维护，请确认服务范围。']).map(para), new Paragraph({ text: '条件与待确认事项', heading: HeadingLevel.HEADING_2 }), ...c.warnings.map(para)] }] });
+  return Packer.toBuffer(doc);
+}

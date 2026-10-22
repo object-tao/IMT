@@ -1,0 +1,21 @@
+services:
+  app:
+    image: ${IMT_IMAGE:-ghcr.io/object-tao/imt:latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${IMT_PORT:-3100}:3100"
+    environment:
+      NODE_ENV: production
+      AUTH_PASSWORD: ${AUTH_PASSWORD:?Set AUTH_PASSWORD in your untracked .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in your untracked .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_FILE: /app/data/imt.sqlite
+    volumes:
+      - imt-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  imt-data:

@@ -1,0 +1,117 @@
+import Fastify from 'fastify';
+import cookie from '@fastify/cookie';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
+import fastifyStatic from '@fastify/static';
+import { randomBytes, createHash, timingSafeEqual, scryptSync } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { z, ZodError } from 'zod';
+import { Database } from './database.js';
+import { Store, AppError } from './store.js';
+import { kinds, requestSchema, type Kind } from '../shared/model.js';
+import { solve, evaluatePath } from '../shared/engine.js';
+import { demoCatalog } from '../shared/demo.js';
+import { exportDocx, exportHtml } from './export.js';
+
+export async function createApp(options: { database?: Database; password?: string; secret?: string; secureCookie?: boolean; logger?: boolean; clientDir?: string } = {}) {
+  const password = options.password ?? process.env.AUTH_PASSWORD;
+  const secret = options.secret ?? process.env.SESSION_SECRET ?? randomBytes(32).toString('hex');
+  const app = Fastify({ logger: options.logger ?? false, bodyLimit: 5 * 1024 * 1024, requestTimeout: 30000 });
+  const db = options.database ?? new Database({ url: process.env.DATABASE_URL, file: process.env.DATABASE_FILE });
+  await db.initialize();
+  await db.query('CREATE TABLE IF NOT EXISTS auth_sessions (token_hash TEXT PRIMARY KEY, expires_at TEXT NOT NULL)');
+  const store = new Store(db);
+  await app.register(cookie, { secret });
+  await app.register(helmet, { contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'"], styleSrc: ["'self'", "'unsafe-inline'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], frameAncestors: ["'none'"] } } });
+  await app.register(rateLimit, { max: 180, timeWindow: '1 minute' });
+  const passwordSalt = randomBytes(16);
+  const expectedPassword = password ? scryptSync(password, passwordSalt, 64) : undefined;
+  const hash = (value: string) => createHash('sha256').update(value).digest('hex');
+  const authenticated = async (raw?: string) => {
+    if (!password) return true;
+    if (!raw) return false;
+    const parsed = app.unsignCookie(raw);
+    if (!parsed.valid || !parsed.value) return false;
+    const rows = await db.query('SELECT expires_at FROM auth_sessions WHERE token_hash=?', [hash(parsed.value)]);
+    return !!rows.length && Date.parse(rows[0].expires_at) > Date.now();
+  };
+  app.addHook('onRequest', async (req, reply) => {
+    if (!req.url.startsWith('/api/')) return;
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method) && req.headers.origin) {
+      if (new URL(req.headers.origin).host !== req.headers.host) return reply.code(403).send({ message: '请求来源不匹配' });
+    }
+    if (['/api/health', '/api/session', '/api/login'].includes(req.url.split('?')[0])) return;
+    if (!await authenticated(req.cookies.imt_session)) return reply.code(401).send({ message: '请先登录' });
+  });
+  app.setErrorHandler((err, req, reply) => {
+    if (err instanceof ZodError) return reply.code(400).send({ message: err.issues.map(i => `${i.path.join('.')}：${i.message}`).join('；') });
+    const error = err as Error & { statusCode?: number };
+    if (error.statusCode && error.statusCode < 500) return reply.code(error.statusCode).send({ message: error.message });
+    req.log.error(err);
+    return reply.code(500).send({ message: '服务处理失败，请检查服务日志' });
+  });
+  app.get('/api/health', async () => { await db.query('SELECT 1 AS ok'); return { ok: true, version: '0.1.0', database: db.driver }; });
+  app.get('/api/session', async req => ({ authenticated: await authenticated(req.cookies.imt_session), authRequired: !!password }));
+  app.post('/api/login', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (req, reply) => {
+    const { password: supplied } = z.object({ password: z.string().max(256) }).parse(req.body);
+    if (expectedPassword && !timingSafeEqual(scryptSync(supplied, passwordSalt, 64), expectedPassword)) throw new AppError(401, '访问密码不正确');
+    const token = randomBytes(32).toString('hex');
+    await db.query('DELETE FROM auth_sessions WHERE expires_at<?', [new Date().toISOString()]);
+    await db.query('INSERT INTO auth_sessions(token_hash,expires_at) VALUES(?,?)', [hash(token), new Date(Date.now() + 8 * 3600000).toISOString()]);
+    reply.setCookie('imt_session', token, { signed: true, httpOnly: true, sameSite: 'strict', secure: options.secureCookie ?? process.env.COOKIE_SECURE === 'true', path: '/', maxAge: 8 * 3600 });
+    return { ok: true };
+  });
+  app.post('/api/logout', async (req, reply) => {
+    const value = req.cookies.imt_session ? app.unsignCookie(req.cookies.imt_session).value : null;
+    if (value) await db.query('DELETE FROM auth_sessions WHERE token_hash=?', [hash(value)]);
+    reply.clearCookie('imt_session', { path: '/' }); return { ok: true };
+  });
+  app.get('/api/catalog', async () => store.catalog());
+  for (const kind of kinds) {
+    app.post(`/api/resources/${kind}`, async (req, reply) => reply.code(201).send(await store.upsert(kind, req.body, true)));
+    app.put(`/api/resources/${kind}/:id`, async req => {
+      const { id } = req.params as { id: string };
+      if ((req.body as any)?.id !== id) throw new AppError(400, '资源 ID 不一致');
+      return store.upsert(kind, req.body, false);
+    });
+    app.delete(`/api/resources/${kind}/:id`, async req => {
+      const { id } = req.params as { id: string }, { version } = z.object({ version: z.coerce.number().int().positive() }).parse(req.query);
+      await store.remove(kind, id, version); return { ok: true };
+    });
+  }
+  app.post('/api/catalog/import', async req => {
+    const body = z.object(Object.fromEntries(kinds.map(k => [k, z.array(z.unknown()).max(10000).optional()]))).strict().parse(req.body);
+    return store.importCatalog(body as Record<string, unknown[]>);
+  });
+  app.post('/api/catalog/demo', async () => store.importCatalog(demoCatalog(), true));
+  app.post('/api/solve', async req => {
+    const request = requestSchema.parse(req.body);
+    const demandId = await store.saveDemand(request);
+    return { ...solve(await store.catalog(), request), demandId };
+  });
+  app.post('/api/evaluate', async req => {
+    const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8) }).parse(req.body);
+    try { return evaluatePath(await store.catalog(), body.request, body.laneIds); }
+    catch (e) { throw new AppError(400, (e as Error).message); }
+  });
+  app.get('/api/plans', async () => store.plans());
+  app.get('/api/plans/:id', async req => store.plan((req.params as { id: string }).id));
+  app.post('/api/plans', async req => {
+    const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8), title: z.string().trim().min(1).max(200), notes: z.string().max(2000).default(''), groupId: z.string().optional(), expectedVersion: z.number().int().nonnegative().optional() }).parse(req.body);
+    try { return await store.savePlan(body); } catch (e) { if (e instanceof AppError) throw e; throw new AppError(400, (e as Error).message); }
+  });
+  app.get('/api/plans/:id/export', async (req, reply) => {
+    const { id } = req.params as { id: string }, query = z.object({ format: z.enum(['docx', 'html']), audience: z.enum(['internal', 'customer']) }).parse(req.query);
+    const plan = await store.plan(id), internal = query.audience === 'internal';
+    if (query.format === 'html') return reply.type('text/html; charset=utf-8').send(exportHtml(plan, internal));
+    return reply.header('Content-Disposition', `attachment; filename="IMT-plan-v${plan.version}.docx"`).type('application/vnd.openxmlformats-officedocument.wordprocessingml.document').send(await exportDocx(plan, internal));
+  });
+  const clientDir = resolve(options.clientDir ?? 'dist/client');
+  if (existsSync(clientDir)) {
+    await app.register(fastifyStatic, { root: clientDir, wildcard: false });
+    app.setNotFoundHandler((req, reply) => req.url.startsWith('/api/') ? reply.code(404).send({ message: '接口不存在' }) : reply.sendFile('index.html'));
+  }
+  app.addHook('onClose', async () => db.close());
+  return { app, store, db };
+}

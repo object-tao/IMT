@@ -23,7 +23,7 @@ async function fixtureResult(page:Page,request:RoadRequest):Promise<RoadResult>{
   const origin=(await (await page.request.get(`/api/geo/cities?country=CN&q=Shanghai`)).json()).items.find((c:any)=>c.id===request.originCityId);
   const destination=(await (await page.request.get(`/api/geo/cities?country=CN&q=Chengdu`)).json()).items.find((c:any)=>c.id===request.destinationCityId);
   const segments:RoadSegment[]=[{kind:'road',name:'公路',distanceMeters:1800000,durationSeconds:64800}],additionalHours=(request.loadingHours??0)+(request.waitingHours??0)+(request.borderHours??0);
-  return {provider:'amap',providerName:'高德货车路线',sourceUrl:'https://lbs.amap.com/api/logistic-service/guide/wagon_path/hc-route-plan',queriedAt:'2026-10-22T04:00:00Z',cached:false,origin,destination,request,segments,
+  return {provider:'amap',providerName:'高德货车路线',sourceUrl:'https://lbs.amap.com/api/logistic-service/guide/wagon_path/hc-route-plan',queriedAt:'2026-10-22T04:00:00Z',cached:false,resultSource:'api',origin,destination,request,segments,
     roadKm:1800,totalKm:1800,drivingHours:18,transferHours:0,providerHours:18,additionalHours,
     single:estimateRoadTime(segments,request.singleDailyHours,additionalHours,request.departureAt),dual:estimateRoadTime(segments,request.dualDailyHours,additionalHours,request.departureAt),
     warnings:['浏览器验收专用固定响应；不是真实路线或报价。','当前车辆参数来自测算模板，尚未按实际车辆确认。','装卸耗时未计入。']};
@@ -41,12 +41,19 @@ test('未配置国内货车服务时给出开通指引，不出现虚构距离',
 
 test('展示公路距离、驾驶和双模式时效；更改国家立即清除结果和城市',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.route('**/api/road/query',async route=>route.fulfill({json:await fixtureResult(page,route.request().postDataJSON())}));
+  let queries=0;
+  await page.route('**/api/road/query',async route=>{
+    const response=await fixtureResult(page,route.request().postDataJSON());
+    if(++queries===2){response.cached=true;response.resultSource='database';response.warnings.push('本次使用数据库历史路线，不代表实时路况。');}
+    await route.fulfill({json:response});
+  });
   const form=await selectChinaCities(page);
   await form.getByRole('button',{name:'查询陆运距离'}).click();
   const result=page.getByRole('region',{name:'陆运查询结果'});
   await expect(result).toBeVisible();await expect(result).toContainText('1,800');await expect(result.locator('.road-metrics')).toContainText('50');await expect(result.locator('.road-metrics')).toContainText('26');
   await expect(result).toContainText('装卸耗时未计入');await expect(result).toContainText('北京时间');
+  await form.getByRole('button',{name:'查询陆运距离'}).click();
+  await expect(result).toContainText('数据库记录（本次未调用 API）');await expect(result).toContainText('2026');await expect(result).toContainText('不代表实时路况');
   await page.screenshot({path:'test-results/road-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.getByText('车辆参数与时效假设',{exact:false}).first().click();

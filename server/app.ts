@@ -76,7 +76,7 @@ export async function createApp(options: { database?: Database; geography?: Geog
   });
   app.get('/api/catalog', async () => store.catalog());
   app.get('/api/road/status',async()=>road.status());
-  app.post('/api/road/query',{config:{rateLimit:{max:20,timeWindow:'1 minute'}}},async req=>road.query(req.body,geography));
+  app.post('/api/road/query',{config:{rateLimit:{max:20,timeWindow:'1 minute'}}},async req=>road.query(req.body,geography,db));
   app.get('/api/geo/countries',async()=>({items:countries,metadata:geography.metadata(),available:geography.available}));
   app.get('/api/geo/cities',async req=>{
     const query=z.object({country:z.string().length(2),q:z.string().max(100).default(''),offset:z.coerce.number().int().min(0).max(10000000).default(0),limit:z.coerce.number().int().min(1).max(100).default(40)}).parse(req.query);

@@ -4,6 +4,8 @@ import { estimateRoadTime,roadRequestSchema,truckTemplates,type RoadRequest,type
 import type { GeoCity } from '../shared/geography.js';
 import { createApp } from '../server/app.js';
 import { Database } from '../server/database.js';
+import { mkdirSync,mkdtempSync,rmSync } from 'node:fs';
+import { resolve,join,sep } from 'node:path';
 
 const cities:Record<string,GeoCity>={
   '1':{id:'1',country:'CN',name:'Shanghai',nameEn:'Shanghai',admin1:'Shanghai',latitude:31.22,longitude:121.46,timeZone:'Asia/Shanghai',population:1},
@@ -42,6 +44,60 @@ describe('陆运驾驶窗口与时效',()=>{
     for(const patch of [{originCityId:'2'},{singleDailyHours:0},{singleDailyHours:10,dualDailyHours:8},{loadingHours:-1},{departureAt:'tomorrow'},
       {vehicle:{...truckTemplates[0].vehicle,currentWeightT:30}},{vehicle:{...truckTemplates[0].vehicle,loadCapacityT:26}},
       {vehicle:{...truckTemplates[0].vehicle,plateProvince:'川'}}])expect(roadRequestSchema.safeParse({...request(),...patch}).success).toBe(false);
+  });
+});
+
+const databaseDrivers=['sqlite',...(process.env.TEST_DATABASE_URL ? ['postgresql'] : [])];
+describe.each(databaseDrivers)('陆运数据库复用：%s',driver=>{
+  const database=(file=':memory:')=>new Database(driver==='postgresql' ? {url:process.env.TEST_DATABASE_URL} : {file});
+  it('成功记录落库，重开数据库和服务后仍读取原记录，不需要 Key；计时条件重新计算',async()=>{
+    const root=resolve('.local');mkdirSync(root,{recursive:true});const directory=mkdtempSync(join(root,'road-test-'));
+    let db=database(join(directory,'routes.sqlite'));await db.initialize();await db.query('DELETE FROM road_routes');
+    const fetcher=vi.fn<typeof fetch>().mockImplementation(async()=>json(hereBody([hereSection()])));
+    try{
+      const first=await new RoadService({hereKey:'private-test-key',fetch:fetcher}).query(us(),geo,db);
+      expect(first.resultSource).toBe('api');expect(first.cached).toBe(false);
+      const rows=await db.query('SELECT * FROM road_routes');expect(rows).toHaveLength(1);expect(JSON.stringify(rows)).not.toContain('private-test-key');
+      await db.close();db=database(join(directory,'routes.sqlite'));await db.initialize();
+      const noFetch=vi.fn<typeof fetch>();
+      const second=await new RoadService({hereKey:'',fetch:noFetch}).query({...us(),singleDailyHours:4,dualDailyHours:20,loadingHours:5,departureAt:'2026-10-22T00:00:00Z',vehicle:{...us().vehicle,confirmed:true}},geo,db);
+      expect(second.resultSource).toBe('database');expect(second.cached).toBe(true);expect(second.queriedAt).toBe(first.queriedAt);expect(second.roadKm).toBe(first.roadKm);
+      expect(second.single.hours).toBe(103);expect(second.dual.hours).toBe(23);expect(second.dual.arrivalAt).toBe('2026-10-22T23:00:00.000Z');
+      expect(second.warnings.join('')).toContain('数据库历史路线');expect(second.warnings.join('')).not.toContain('尚未按实际车辆确认');expect(noFetch).not.toHaveBeenCalled();
+      const clock=vi.spyOn(Date,'now').mockReturnValue(Date.now()+400*86400000);
+      try{expect((await new RoadService({hereKey:'',fetch:noFetch}).query(us(),geo,db)).resultSource).toBe('database');}finally{clock.mockRestore();}
+      expect(noFetch).not.toHaveBeenCalled();expect(fetcher).toHaveBeenCalledTimes(1);
+    }finally{await db.query('DELETE FROM road_routes');await db.close();if(!directory.startsWith(root+sep))throw new Error('Unexpected test directory');rmSync(directory,{recursive:true,force:true});}
+  });
+  it('方向、车辆参数、摆渡设置及城市坐标不同不能复用同一记录',async()=>{
+    const db=database();await db.initialize();await db.query('DELETE FROM road_routes');
+    const fetcher=vi.fn<typeof fetch>().mockImplementation(async()=>json(hereBody([hereSection()]))),service=new RoadService({hereKey:'key',fetch:fetcher});
+    try{
+      const requests=[us(),{...us(),originCityId:'4',destinationCityId:'3'},{...us(),vehicle:{...us().vehicle,heightM:4}},{...us(),allowFerries:true}];
+      for(const r of requests){expect((await service.query(r,geo,db)).cached).toBe(false);expect((await service.query(r,geo,db)).cached).toBe(true);}
+      const movedGeo={get:(id:string)=>id==='3' ? {...cities[id],longitude:-74.1} : cities[id]};
+      expect((await service.query(us(),movedGeo,db)).cached).toBe(false);
+      expect(fetcher).toHaveBeenCalledTimes(5);expect(await db.query('SELECT * FROM road_routes')).toHaveLength(5);
+    }finally{await db.query('DELETE FROM road_routes');await db.close();}
+  });
+  it('同一服务同时查询相同条件只调用一次，失败不落库且可以重试',async()=>{
+    const db=database();await db.initialize();await db.query('DELETE FROM road_routes');
+    const fetcher=vi.fn<typeof fetch>().mockResolvedValueOnce(json({},403));
+    const service=new RoadService({hereKey:'key',fetch:fetcher});
+    try{
+      await expect(service.query(us(),geo,db)).rejects.toThrow('授权失败');expect(await db.query('SELECT * FROM road_routes')).toHaveLength(0);
+      let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});fetcher.mockImplementation(async()=>{await gate;return json(hereBody([hereSection()]));});
+      const requests=Array.from({length:8},()=>service.query(us(),geo,db));release();
+      const results=await Promise.all(requests);expect(results.every(r=>r.roadKm===1800)).toBe(true);expect(fetcher).toHaveBeenCalledTimes(2);expect(await db.query('SELECT * FROM road_routes')).toHaveLength(1);
+    }finally{await db.query('DELETE FROM road_routes');await db.close();}
+  });
+  it('已有记录损坏时明确报错，不静默调用 API',async()=>{
+    const db=database();await db.initialize();await db.query('DELETE FROM road_routes');
+    const fetcher=vi.fn<typeof fetch>().mockResolvedValue(json(hereBody([hereSection()]))),service=new RoadService({hereKey:'key',fetch:fetcher});
+    try{
+      await service.query(us(),geo,db);await db.query('UPDATE road_routes SET route_payload=?',['{invalid']);
+      await expect(service.query(us(),geo,db)).rejects.toThrow('本次未调用外部 API');expect(fetcher).toHaveBeenCalledTimes(1);
+    }finally{await db.query('DELETE FROM road_routes');await db.close();}
   });
 });
 
@@ -105,21 +161,17 @@ describe('真实路线适配与异常隔离（固定接口响应，不调用付�
     await expect(new RoadService({hereKey:'secret',fetch:vi.fn<typeof fetch>().mockRejectedValue(new Error('https://bad/?apiKey=secret'))}).query(us(),geo)).rejects.toThrow('无法连接');
     await expect(new RoadService({hereKey:'secret',fetch:vi.fn<typeof fetch>().mockResolvedValue(json({routes:[{sections:[{}]}]}))}).query(us(),geo)).rejects.toThrow('格式异常');
   });
+  it('高德 10012 返回明确服务权限提示，安全处理错误码，不输出供应商原始消息',async()=>{
+    const fetcher=vi.fn<typeof fetch>().mockResolvedValueOnce(json({status:'1',locations:'121.464,31.224;104.064,30.664'})).mockResolvedValueOnce(json({errcode:10012,errmsg:'INSUFFICIENT_PRIVILEGES secret-key-in-message'}));
+    await expect(new RoadService({amapKey:'secret-key-in-message',fetch:fetcher}).query(request(),geo)).rejects.toThrow('高德错误码 10012');
+    const bad=vi.fn<typeof fetch>().mockResolvedValue(json({status:'0',infocode:'secret-value',info:'secret-value'}));
+    await expect(new RoadService({amapKey:'secret-value',fetch:bad}).query(request(),geo)).rejects.toThrow('高德坐标转换未成功：请检查服务权限、配额或参数');
+  });
   it('整次查询超时生效，后续请求可继续',async()=>{
     const fetcher=vi.fn<typeof fetch>().mockImplementation(async(_url,options)=>new Promise((_resolve,reject)=>{
       const timer=setTimeout(()=>reject(new Error('failed')),30);options?.signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new Error('abort'));},{once:true});
     }));
     await expect(new RoadService({hereKey:'key',fetch:fetcher,timeoutMs:5}).query(us(),geo)).rejects.toThrow('超时');
-  });
-  it('缓存默认关闭；启用后按车辆隔离且时效参数重新计算，过期后重新查询',async()=>{
-    const fetcher=vi.fn<typeof fetch>().mockImplementation(async()=>json(hereBody([hereSection()])));
-    const disabled=new RoadService({hereKey:'key',fetch:fetcher,cacheTtlSeconds:0});await disabled.query(us(),geo);await disabled.query(us(),geo);expect(fetcher).toHaveBeenCalledTimes(2);
-    fetcher.mockClear();const service=new RoadService({hereKey:'key',fetch:fetcher,cacheTtlSeconds:60});
-    const first=await service.query(us(),geo),second=await service.query({...us(),loadingHours:5},geo);
-    expect(first.cached).toBe(false);expect(second.cached).toBe(true);expect(second.single.hours-first.single.hours).toBe(5);expect(fetcher).toHaveBeenCalledTimes(1);
-    await service.query({...us(),vehicle:{...us().vehicle,heightM:4}},geo);expect(fetcher).toHaveBeenCalledTimes(2);
-    const clock=vi.spyOn(Date,'now').mockReturnValue(Date.now()+61000);
-    try{expect((await service.query(us(),geo)).cached).toBe(false);expect(fetcher).toHaveBeenCalledTimes(3);}finally{clock.mockRestore();}
   });
   it('接口受登录保护，配置状态不暴露密钥；缺配置返回清晰错误',async()=>{
     const {app}=await createApp({database:new Database({file:':memory:'}),password:'test-password-long-enough',secret:'test-session-secret-with-32-characters',road:new RoadService({amapKey:'',hereKey:''})});

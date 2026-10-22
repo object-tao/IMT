@@ -4,12 +4,15 @@ import { roadRequestSchema,estimateRoadTime,type RoadRequest,type RoadRoute,type
 import type { GeoCity } from '../shared/geography.js';
 import type { Geography } from './geography.js';
 import { AppError } from './store.js';
+import type { Sql } from './database.js';
 
-type Config={amapKey?:string;hereKey?:string;cacheTtlSeconds?:number;timeoutMs?:number;fetch?:typeof fetch};
+type Config={amapKey?:string;hereKey?:string;timeoutMs?:number;fetch?:typeof fetch};
+type PendingRoute=Promise<{route:RoadRoute;queriedAt:string}>;
 const europeanCountries=new Set('AL AD AT BY BE BA BG HR CY CZ DK EE FO FI FR DE GI GR GG HU IS IE IM IT JE XK LV LI LT LU MT MD MC ME NL MK NO PL PT RO RU SM RS SK SI ES SJ SE CH TR UA GB VA AX'.split(' '));
 const urls={amap:'https://lbs.amap.com/api/logistic-service/guide/wagon_path/hc-route-plan',here:'https://docs.here.com/routing/docs/routing-v8-truck-routing'};
 const metric=z.union([z.number(),z.string().regex(/^\d+(\.\d+)?$/)]).transform(Number).pipe(z.number().finite().nonnegative());
 const summarySchema=z.object({length:metric,duration:metric});
+const storedRouteSchema=z.object({segments:z.array(z.object({kind:z.enum(['road','ferry','railFerry','waiting']),name:z.string(),distanceMeters:z.number().finite().nonnegative(),durationSeconds:z.number().finite().nonnegative()})).min(1),warnings:z.array(z.string())});
 const segment=(kind:RoadSegment['kind'],name:string,distanceMeters:number,durationSeconds:number):RoadSegment=>({kind,name,distanceMeters,durationSeconds});
 const noRoute=()=>new AppError(422,'未找到符合条件的货车道路路线；请检查城市参考点、车辆限制及轮渡设置，不提供直线距离替代值');
 function compact(segments:RoadSegment[]):RoadSegment[]{
@@ -19,18 +22,34 @@ function compact(segments:RoadSegment[]):RoadSegment[]{
 }
 
 export class RoadService {
-  private config:Required<Pick<Config,'cacheTtlSeconds'|'timeoutMs'|'fetch'>>&Config;
-  private cache=new Map<string,{expires:number;route:RoadRoute;queriedAt:string}>();
+  private config:Required<Pick<Config,'timeoutMs'|'fetch'>>&Config;
+  private directInFlight=new Map<string,PendingRoute>();
+  private databaseInFlight=new WeakMap<Sql,Map<string,PendingRoute>>();
   private active=0;
   constructor(config:Config={}){
     this.config={amapKey:config.amapKey ?? process.env.AMAP_TRUCK_KEY,hereKey:config.hereKey ?? process.env.HERE_ROUTING_KEY,
-      cacheTtlSeconds:config.cacheTtlSeconds ?? Number(process.env.ROAD_CACHE_TTL_SECONDS ?? 0),timeoutMs:config.timeoutMs ?? 12000,fetch:config.fetch ?? fetch};
-    if(!Number.isFinite(this.config.cacheTtlSeconds)||this.config.cacheTtlSeconds<0||this.config.cacheTtlSeconds>3600)throw new Error('ROAD_CACHE_TTL_SECONDS 必须为 0 至 3600');
+      timeoutMs:config.timeoutMs ?? 12000,fetch:config.fetch ?? fetch};
   }
   status():RoadStatus{return {providers:[
     {id:'amap',name:'高德货车路线',configured:!!this.config.amapKey,region:'中国大陆境内',setupUrl:urls.amap},
     {id:'here',name:'HERE Truck',configured:!!this.config.hereKey,region:'美国及欧洲；以接口实际覆盖为准',setupUrl:urls.here},
-  ],cacheTtlSeconds:this.config.cacheTtlSeconds};}
+  ],storage:'database'};}
+  private amapFailure(data:any,stage:string):never{
+    const code=String(data?.errcode ?? data?.infocode ?? '');
+    const messages:Record<string,string>={
+      '10001':'Key 不正确或已过期，请在本机重新配置 Web 服务 Key',
+      '10002':'当前 Key 尚未开通所请求的服务，请联系高德商务开通高级货车服务',
+      '10003':'日调用额度已用完，请检查套餐额度',
+      '10004':'调用过于频繁，请稍后重试',
+      '10005':'出口 IP 不在高德白名单中，请检查控制台配置',
+      '10007':'数字签名验证未通过，请检查该 Key 的数字签名设置',
+      '10009':'Key 的平台类型不匹配，请创建 Web 服务类型的 Key',
+      '10012':'权限不足：该 Key 尚未获准使用所请求的服务，请在高德商务工单中申请开通',
+      '10013':'Key 已被删除，请重新配置',
+      '10014':'请求频率超过配额，请稍后重试',
+    };
+    throw new AppError(503,`${stage}未成功${/^\d+$/.test(code)?`（高德错误码 ${code}）`:''}：${messages[code] ?? '请检查服务权限、配额或参数'}`);
+  }
   private async json(url:URL,signal:AbortSignal):Promise<any>{
     // Do not log URLs, upstream payloads or raw fetch exceptions: API keys are query parameters.
     try{
@@ -48,7 +67,7 @@ export class RoadService {
     convert.search=new URLSearchParams({key,coordsys:'gps',locations:[origin,destination].map(c=>`${c.longitude.toFixed(6)},${c.latitude.toFixed(6)}`).join('|')}).toString();
     const coords=await this.json(convert,signal);
     if(!coords || typeof coords!=='object')throw new AppError(502,'高德坐标转换返回格式异常');
-    if(String(coords.status)!=='1')throw new AppError(503,'高德坐标转换未成功，请检查 Web 服务 Key、配额及访问权限');
+    if(String(coords.status)!=='1')this.amapFailure(coords,'高德坐标转换');
     const locations=String(coords.locations ?? '').split(';');
     if(locations.length!==2 || !locations.every(p=>/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(p)))throw new AppError(502,'高德坐标转换返回格式异常');
     const v=r.vehicle,url=new URL('https://tsapi.amap.com/v1/logistics/transport/route/direction/truck');
@@ -58,7 +77,7 @@ export class RoadService {
       ...(v.plateProvince ? {province:v.plateProvince,number:v.plateNumber} : {})}).toString();
     const data=await this.json(url,signal);
     if(!data || typeof data!=='object')throw new AppError(502,'高德路线数据格式异常');
-    if(String(data.errcode)!=='10000')throw new AppError(503,'高德货车查询未成功，请检查物流高级货车服务权限、配额或车辆参数');
+    if(String(data.errcode)!=='10000')this.amapFailure(data,'高德高级货车查询');
     const pathSchema=z.object({distance:metric.refine(v=>v>0),duration:metric.refine(v=>v>0),restriction:z.coerce.number().optional(),steps:z.array(z.object({
       distance:metric,duration:metric,instruction:z.string().optional(),road:z.string().optional(),action:z.string().optional(),assistant_action:z.string().optional(),
     })).min(1)});
@@ -122,7 +141,7 @@ export class RoadService {
     }
     throw noRoute();
   }
-  async query(body:unknown,geography:Pick<Geography,'get'>):Promise<RoadResult>{
+  async query(body:unknown,geography:Pick<Geography,'get'>,database?:Sql):Promise<RoadResult>{
     const r=roadRequestSchema.parse(body),origin=geography.get(r.originCityId),destination=geography.get(r.destinationCityId);
     if(!origin||origin.country!==r.originCountry||!destination||destination.country!==r.destinationCountry)throw new AppError(400,'城市与国家不匹配，请重新从候选城市选择');
     if(r.cargoType!=='general')throw new AppError(422,'危险品及超限大件需专门核实许可和通行条件，本查询暂不生成普通货车测算结果');
@@ -131,21 +150,48 @@ export class RoadService {
     if(!domestic&&!overseas)throw new AppError(422,'当前预设覆盖中国大陆境内、美国境内及欧洲区域；中国跨境等路线需指定口岸并分段核实');
     const provider=domestic ? 'amap' : 'here';
     if(domestic && r.vehicle.lengthM>25)throw new AppError(422,'高德货车路线支持的整车长度上限为 25 m，超长车辆需专项核实');
-    if(!this.config[provider==='amap'?'amapKey':'hereKey'])throw new AppError(503,`${provider==='amap'?'高德货车':'HERE Truck'}尚未配置，请先开通服务并在服务器设置 ${provider==='amap'?'AMAP_TRUCK_KEY':'HERE_ROUTING_KEY'}；请勿将密钥填入聊天或提交 GitHub`);
-    const cacheKey=createHash('sha256').update(JSON.stringify({provider,origin:origin.id,destination:destination.id,vehicle:r.vehicle,allowFerries:r.allowFerries})).digest('hex');
-    const now=Date.now(),hit=this.cache.get(cacheKey);let route:RoadRoute,queriedAt:string,cached=false;
-    if(hit&&hit.expires>now){({route,queriedAt}=hit);cached=true;}
-    else{
-      if(this.active>=4)throw new AppError(429,'当前陆运查询较多，请稍后重试');
-      this.active++;
-      try{const signal=AbortSignal.timeout(this.config.timeoutMs);route=await (provider==='amap'?this.amap(r,origin,destination,signal):this.here(r,origin,destination,signal));queriedAt=new Date().toISOString();}
-      finally{this.active--;}
-      if(this.config.cacheTtlSeconds>0){for(const [key,value] of this.cache)if(value.expires<=now)this.cache.delete(key);if(this.cache.size>=200)this.cache.delete(this.cache.keys().next().value!);this.cache.set(cacheKey,{route,queriedAt,expires:Date.now()+this.config.cacheTtlSeconds*1000});}
+    // Keys identify routing facts, never API credentials or ETA-only parameters.
+    // Retain direction, coordinates and a routing-version marker to prevent unsafe reuse.
+    const {confirmed:_confirmed,...vehicle}=r.vehicle;
+    const point=(city:GeoCity)=>({id:city.id,country:city.country,latitude:city.latitude,longitude:city.longitude});
+    const descriptor={version:'truck-v2',provider,origin:point(origin),destination:point(destination),vehicle,allowFerries:r.allowFerries,cargoType:r.cargoType};
+    const cacheKey=createHash('sha256').update(JSON.stringify(descriptor)).digest('hex');
+    let route:RoadRoute,queriedAt:string,cached=false;
+    const rows=database ? await database.query('SELECT route_payload,queried_at FROM road_routes WHERE cache_key=?',[cacheKey]) : [];
+    if(rows.length){
+      try{route=storedRouteSchema.parse(JSON.parse(rows[0].route_payload));queriedAt=z.iso.datetime().parse(rows[0].queried_at);}
+      catch{throw new AppError(503,'数据库中该路线记录不完整，请联系维护人员检查；本次未调用外部 API');}
+      cached=true;
+    }else{
+      let inFlight=this.directInFlight;
+      if(database){if(!this.databaseInFlight.has(database))this.databaseInFlight.set(database,new Map());inFlight=this.databaseInFlight.get(database)!;}
+      const existing=inFlight.get(cacheKey);
+      if(existing){({route,queriedAt}=await existing);cached=!!database;}
+      else{
+        if(!this.config[provider==='amap'?'amapKey':'hereKey'])throw new AppError(503,`${provider==='amap'?'高德货车':'HERE Truck'}尚未配置，请先开通服务并在服务器设置 ${provider==='amap'?'AMAP_TRUCK_KEY':'HERE_ROUTING_KEY'}；请勿将密钥填入聊天或提交 GitHub`);
+        if(this.active>=4)throw new AppError(429,'当前陆运查询较多，请稍后重试');
+        const fetchAndSave=async()=>{
+          this.active++;
+          try{
+            const signal=AbortSignal.timeout(this.config.timeoutMs);
+            const fetched=await (provider==='amap'?this.amap(r,origin,destination,signal):this.here(r,origin,destination,signal));
+            const timestamp=new Date().toISOString();
+            if(database){
+              try{await database.query('INSERT INTO road_routes(cache_key,provider,request_payload,route_payload,queried_at) VALUES(?,?,?,?,?) ON CONFLICT(cache_key) DO NOTHING',[cacheKey,provider,JSON.stringify(descriptor),JSON.stringify(fetched),timestamp]);}
+              catch{throw new AppError(503,'路线 API 查询成功，但保存数据库失败，请联系维护人员检查');}
+            }
+            return {route:fetched,queriedAt:timestamp};
+          }finally{this.active--;}
+        };
+        const pending=fetchAndSave();inFlight.set(cacheKey,pending);
+        try{({route,queriedAt}=await pending);}finally{inFlight.delete(cacheKey);}
+      }
     }
     const sum=(key:'distanceMeters'|'durationSeconds',roadOnly=false)=>route.segments.filter(s=>!roadOnly||s.kind==='road').reduce((n,s)=>n+s[key],0);
     const additionalHours=(r.loadingHours ?? 0)+(r.waitingHours ?? 0)+(r.borderHours ?? 0);
     const drivingHours=sum('durationSeconds',true)/3600,providerHours=sum('durationSeconds')/3600;
     const warnings=[...route.warnings,
+      ...(cached ? ['本次使用数据库历史路线，未调用路线 API；里程、限行及驾驶耗时基于原查询日期，不代表实时路况。'] : []),
       '按城市参考坐标计算推荐货车路线，具体仓库地址可能改变里程和耗时；结果不保证送达。',
       '驾驶耗时基于查询时的数据；可选出发时间只用于推算到达时间，不预测未来路况和时段限行。',
       '单驾 / 双驾为每天累计驾驶窗口的业务测算，不代表当地驾驶法规；额外耗时单独累加，不抵扣休息。',
@@ -154,7 +200,7 @@ export class RoadService {
       ...(r.originCountry!==r.destinationCountry&&r.borderHours===null ? ['跨境通关及边境等待未计入。'] : []),
       ...(route.segments.some(s=>s.kind==='ferry'||s.kind==='railFerry') ? ['路线含轮渡或摆渡，班次、可载车辆和额外等候须另行确认。'] : []),
     ];
-    return {provider,providerName:provider==='amap'?'高德货车路线':'HERE Truck',sourceUrl:urls[provider],queriedAt,cached,origin,destination,request:r,segments:route.segments,
+    return {provider,providerName:provider==='amap'?'高德货车路线':'HERE Truck',sourceUrl:urls[provider],queriedAt,cached,resultSource:cached?'database':'api',origin,destination,request:r,segments:route.segments,
       roadKm:sum('distanceMeters',true)/1000,totalKm:sum('distanceMeters')/1000,drivingHours,transferHours:providerHours-drivingHours,providerHours,additionalHours,
       single:estimateRoadTime(route.segments,r.singleDailyHours,additionalHours,r.departureAt),dual:estimateRoadTime(route.segments,r.dualDailyHours,additionalHours,r.departureAt),warnings};
   }

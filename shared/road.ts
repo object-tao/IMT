@@ -38,12 +38,12 @@ export type RoadSegment={kind:'road'|'ferry'|'railFerry'|'waiting';name:string;d
 export type RoadRoute={segments:RoadSegment[];warnings:string[]};
 export type RoadEstimate={hours:number;days:number;restHours:number;arrivalAt?:string};
 export type RoadResult={
-  provider:'amap'|'here';providerName:string;sourceUrl:string;queriedAt:string;cached:boolean;
+  provider:'amap'|'here';providerName:string;sourceUrl:string;queriedAt:string;cached:boolean;resultSource:'api'|'database';
   origin:GeoCity;destination:GeoCity;request:RoadRequest;segments:RoadSegment[];
   roadKm:number;totalKm:number;drivingHours:number;transferHours:number;providerHours:number;additionalHours:number;
   single:RoadEstimate;dual:RoadEstimate;warnings:string[];
 };
-export type RoadStatus={providers:{id:'amap'|'here';name:string;configured:boolean;region:string;setupUrl:string}[];cacheTtlSeconds:number};
+export type RoadStatus={providers:{id:'amap'|'here';name:string;configured:boolean;region:string;setupUrl:string}[];storage:'database'};
 
 // Fixed operating windows begin at first departure: drive up to N hours, rest until
 // the next 24-hour window. Ferry time advances the clock; it isn't driving time.

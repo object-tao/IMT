@@ -23,19 +23,19 @@ async function fixtureResult(page:Page,request:RoadRequest):Promise<RoadResult>{
   const origin=(await (await page.request.get(`/api/geo/cities?country=CN&q=Shanghai`)).json()).items.find((c:any)=>c.id===request.originCityId);
   const destination=(await (await page.request.get(`/api/geo/cities?country=CN&q=Chengdu`)).json()).items.find((c:any)=>c.id===request.destinationCityId);
   const segments:RoadSegment[]=[{kind:'road',name:'公路',distanceMeters:1800000,durationSeconds:64800}],additionalHours=(request.loadingHours??0)+(request.waitingHours??0)+(request.borderHours??0);
-  return {provider:'amap',providerName:'高德货车路线',sourceUrl:'https://lbs.amap.com/api/logistic-service/guide/wagon_path/hc-route-plan',queriedAt:'2026-10-22T04:00:00Z',cached:false,resultSource:'api',origin,destination,request,segments,
-    roadKm:1800,totalKm:1800,drivingHours:18,transferHours:0,providerHours:18,additionalHours,
-    single:estimateRoadTime(segments,request.singleDailyHours,additionalHours,request.departureAt),dual:estimateRoadTime(segments,request.dualDailyHours,additionalHours,request.departureAt),
-    warnings:['浏览器验收专用固定响应；不是真实路线或报价。','当前车辆参数来自测算模板，尚未按实际车辆确认。','装卸耗时未计入。']};
+  return {provider:'amap',providerName:'高德普通驾车',sourceUrl:'https://lbs.amap.com/api/webservice/guide/api/newroute',queriedAt:'2026-10-22T04:00:00Z',cached:false,resultSource:'api',origin,destination,request,segments,
+    roadKm:1800,totalKm:1800,drivingHours:30,transferHours:0,providerHours:18,additionalHours,mapDrivingHours:18,routingMode:'car',
+    single:estimateRoadTime([{...segments[0],durationSeconds:30*3600}],request.singleDailyHours,additionalHours,request.departureAt),dual:estimateRoadTime([{...segments[0],durationSeconds:30*3600}],request.dualDailyHours,additionalHours,request.departureAt),
+    warnings:['浏览器验收专用固定响应；不是真实路线或报价。','普通驾车参考路线，不校验货车限高、限重和限行。','装卸耗时未计入。']};
 }
 
-test('未配置国内货车服务时给出开通指引，不出现虚构距离',async({page})=>{
+test('未配置国内普通驾车服务时给出开通指引，不出现虚构距离',async({page})=>{
   const form=await selectChinaCities(page);
   await form.getByRole('button',{name:'查询陆运距离'}).click();
-  await expect(page.locator('.road-error')).toContainText('AMAP_TRUCK_KEY');
+  await expect(page.locator('.road-error')).toContainText('AMAP_WEB_SERVICE_KEY');
   await expect(page.getByRole('region',{name:'陆运查询结果'})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});
-  await page.getByText('车辆参数与时效假设',{exact:false}).first().click();
+  await page.getByText('时效测算参数',{exact:false}).first().click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
@@ -50,16 +50,15 @@ test('展示公路距离、驾驶和双模式时效；更改国家立即清除�
   const form=await selectChinaCities(page);
   await form.getByRole('button',{name:'查询陆运距离'}).click();
   const result=page.getByRole('region',{name:'陆运查询结果'});
-  await expect(result).toBeVisible();await expect(result).toContainText('1,800');await expect(result.locator('.road-metrics')).toContainText('50');await expect(result.locator('.road-metrics')).toContainText('26');
+  await expect(result).toBeVisible();await expect(result).toContainText('1,800');await expect(result.locator('.road-metrics')).toContainText('78');await expect(result.locator('.road-metrics')).toContainText('38');
   await expect(result).toContainText('装卸耗时未计入');await expect(result).toContainText('北京时间');
   await form.getByRole('button',{name:'查询陆运距离'}).click();
   await expect(result).toContainText('数据库记录（本次未调用 API）');await expect(result).toContainText('2026');await expect(result).toContainText('不代表实时路况');
   await page.screenshot({path:'test-results/road-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
-  await page.getByText('车辆参数与时效假设',{exact:false}).first().click();
-  await form.getByLabel('实际车货总重 t',{exact:true}).fill('19');
+  await page.getByText('时效测算参数',{exact:false}).first().click();
+  await form.getByLabel('卡车参考平均车速 km/h',{exact:true}).fill('65');
   await expect(result).toHaveCount(0);
-  await expect(form.getByLabel('已按实际车辆确认以上参数')).not.toBeChecked();
   await form.getByRole('button',{name:'查询陆运距离'}).click();await expect(result).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'test-results/road-mobile.png',fullPage:true});

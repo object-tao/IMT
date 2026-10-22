@@ -24,6 +24,7 @@ export const roadRequestSchema = z.object({
   originCountry:country,originCityId:cityId,destinationCountry:country,destinationCityId:cityId,
   vehicle:truckSchema.default(truckTemplates[0].vehicle),
   singleDailyHours:z.number().min(1).max(12).default(8),dualDailyHours:z.number().min(1).max(24).default(16),
+  averageSpeedKph:z.number().min(10).max(100).default(60),
   loadingHours:z.number().min(0).max(720).nullable().default(null),
   waitingHours:z.number().min(0).max(720).nullable().default(null),
   borderHours:z.number().min(0).max(720).nullable().default(null),
@@ -35,12 +36,12 @@ export const roadRequestSchema = z.object({
 });
 export type RoadRequest=z.infer<typeof roadRequestSchema>;
 export type RoadSegment={kind:'road'|'ferry'|'railFerry'|'waiting';name:string;distanceMeters:number;durationSeconds:number};
-export type RoadRoute={segments:RoadSegment[];warnings:string[]};
+export type RoadRoute={segments:RoadSegment[];warnings:string[];roadNames?:string[]};
 export type RoadEstimate={hours:number;days:number;restHours:number;arrivalAt?:string};
 export type RoadResult={
   provider:'amap'|'here';providerName:string;sourceUrl:string;queriedAt:string;cached:boolean;resultSource:'api'|'database';
   origin:GeoCity;destination:GeoCity;request:RoadRequest;segments:RoadSegment[];
-  roadKm:number;totalKm:number;drivingHours:number;transferHours:number;providerHours:number;additionalHours:number;
+  roadKm:number;totalKm:number;drivingHours:number;mapDrivingHours:number;transferHours:number;providerHours:number;additionalHours:number;routingMode:'car';roadNames?:string[];
   single:RoadEstimate;dual:RoadEstimate;warnings:string[];
 };
 export type RoadStatus={providers:{id:'amap'|'here';name:string;configured:boolean;region:string;setupUrl:string}[];storage:'database'};

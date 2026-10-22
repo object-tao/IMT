@@ -2,11 +2,12 @@ $ErrorActionPreference = 'Stop'
 $imtRepo = Split-Path -Parent $PSScriptRoot
 $imtEnvFile = Join-Path $imtRepo '.env'
 Write-Host 'IMT road routing setup: 1 = Amap (China), 2 = HERE (US / Europe), 3 = both'
-Write-Host 'Amap requires Web Service Key + enabled Advanced Logistics Truck API + coordinate conversion permission.'
+Write-Host 'First enter 1, 2 or 3. Enter the API key only at the next hidden-input prompt.'
+Write-Host 'Amap uses ordinary driving routes + coordinate conversion with a Web Service Key. No Truck API required.'
 $imtChoice = Read-Host 'Select 1 / 2 / 3'
 if ($imtChoice -notin @('1', '2', '3')) { throw 'Invalid selection; no changes written.' }
 $imtKeys = @()
-if ($imtChoice -in @('1', '3')) { $imtKeys += 'AMAP_TRUCK_KEY' }
+if ($imtChoice -in @('1', '3')) { $imtKeys += 'AMAP_WEB_SERVICE_KEY' }
 if ($imtChoice -in @('2', '3')) { $imtKeys += 'HERE_ROUTING_KEY' }
 $imtUpdates = @{}
 foreach ($imtKeyName in $imtKeys) {

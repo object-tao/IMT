@@ -33,7 +33,7 @@ npm start
 6. 保存方案，在「方案档案」查看版本，导出内部版或客户版。客户版隐藏供应商列和内部备注。
 7. PDF 通过「打印 / PDF」打开专用打印页面，再用浏览器「另存为 PDF」。已提供 A4 横向打印样式；Word 为真实 `.docx` 文件。
 
-8. 在「陆运距离与时效」查询城市间货车公路里程、单驾及双驾时效；独立于供应商线路。国内高德、美国和欧洲 HERE Truck 接入已预设，需开通自己的服务账户并执行 `npm run road:configure` 录入密钥、重启应用后查询；详见 [陆运服务开通与测算规则](docs/road-routing.md)。
+8. 在「陆运距离与时效」查询城市间普通驾车公路里程、单驾及双驾时效；独立于供应商线路。国内高德普通驾车、美国和欧洲 HERE 普通驾车 接入已预设，需开通自己的服务账户并执行 `npm run road:configure` 录入密钥、重启应用后查询；详见 [陆运服务开通与测算规则](docs/road-routing.md)。
 
 详细约定见 [需求基线](docs/requirements.md)、[运算规则与边界](docs/engine.md)、[导入指南](docs/import.md)、[全球地名库](docs/geography.md)、[部署与回滚](docs/deployment.md)。
 

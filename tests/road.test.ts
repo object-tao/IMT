@@ -16,15 +16,15 @@ const cities:Record<string,GeoCity>={
   '6':{id:'6',country:'FR',name:'Paris',nameEn:'Paris',admin1:'Paris',latitude:48.85,longitude:2.35,timeZone:'Europe/Paris',population:1},
 };
 const geo={get:(id:string)=>cities[id]};
-const request=(patch:Partial<RoadRequest>={}):RoadRequest=>roadRequestSchema.parse({originCountry:'CN',originCityId:'1',destinationCountry:'CN',destinationCityId:'2',...patch});
+const request=(patch:Partial<RoadRequest>={}):RoadRequest=>roadRequestSchema.parse({originCountry:'CN',originCityId:'1',destinationCountry:'CN',destinationCityId:'2',averageSpeedKph:100,...patch});
 const road=(hours:number):RoadSegment=>({kind:'road',name:'公路',distanceMeters:hours*80000,durationSeconds:hours*3600});
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});
 const hereBody=(sections:any[],extra:object={})=>({routes:[{sections}],...extra});
-const hereSection=(hours=18,mode='truck',notices:any[]=[])=>({summary:{length:1800000,duration:hours*3600},transport:{mode},notices});
+const hereSection=(hours=18,mode='car',notices:any[]=[])=>({summary:{length:1800000,duration:hours*3600},transport:{mode},notices});
 const us=()=>request({originCountry:'US',originCityId:'3',destinationCountry:'US',destinationCityId:'4'});
 const europe=(allowFerries=false)=>request({originCountry:'GB',originCityId:'5',destinationCountry:'FR',destinationCityId:'6',allowFerries});
 function amapFetch(path:any={distance:'1800000',duration:'64800',restriction:'0',steps:[{distance:'1800000',duration:'64800',instruction:'沿公路行驶'}]}){
-  return vi.fn<typeof fetch>().mockResolvedValueOnce(json({status:'1',locations:'121.464000,31.224000;104.064000,30.664000'})).mockResolvedValueOnce(json({errcode:10000,data:{route:{paths:[path]}}}));
+  return vi.fn<typeof fetch>().mockResolvedValueOnce(json({status:'1',locations:'121.464000,31.224000;104.064000,30.664000'})).mockResolvedValueOnce(json({status:'1',infocode:'10000',route:{paths:[{distance:path.distance,cost:{duration:path.duration},restriction:path.restriction,steps:path.steps.map((step:any)=>({step_distance:step.distance,cost:{duration:step.duration},instruction:step.instruction,road_name:step.road ?? 'G50沪渝高速',navi:{action:step.action,assistant_action:step.assistant_action}}))}]}}));
 }
 
 describe('陆运驾驶窗口与时效',()=>{
@@ -67,17 +67,19 @@ describe.each(databaseDrivers)('陆运数据库复用：%s',driver=>{
       const clock=vi.spyOn(Date,'now').mockReturnValue(Date.now()+400*86400000);
       try{expect((await new RoadService({hereKey:'',fetch:noFetch}).query(us(),geo,db)).resultSource).toBe('database');}finally{clock.mockRestore();}
       expect(noFetch).not.toHaveBeenCalled();expect(fetcher).toHaveBeenCalledTimes(1);
+      const slower=await new RoadService({hereKey:'',fetch:noFetch}).query({...us(),averageSpeedKph:60},geo,db);
+      expect(slower.resultSource).toBe('database');expect(slower.mapDrivingHours).toBe(18);expect(slower.drivingHours).toBe(30);expect(slower.single.hours).toBe(78);expect(slower.dual.hours).toBe(38);expect(noFetch).not.toHaveBeenCalled();
     }finally{await db.query('DELETE FROM road_routes');await db.close();if(!directory.startsWith(root+sep))throw new Error('Unexpected test directory');rmSync(directory,{recursive:true,force:true});}
   });
-  it('方向、车辆参数、摆渡设置及城市坐标不同不能复用同一记录',async()=>{
+  it('方向、摆渡设置及城市坐标不同不复用；车辆参数不影响普通路线',async()=>{
     const db=database();await db.initialize();await db.query('DELETE FROM road_routes');
     const fetcher=vi.fn<typeof fetch>().mockImplementation(async()=>json(hereBody([hereSection()]))),service=new RoadService({hereKey:'key',fetch:fetcher});
     try{
-      const requests=[us(),{...us(),originCityId:'4',destinationCityId:'3'},{...us(),vehicle:{...us().vehicle,heightM:4}},{...us(),allowFerries:true}];
+      const requests=[us(),{...us(),originCityId:'4',destinationCityId:'3'},{...us(),allowFerries:true}];
       for(const r of requests){expect((await service.query(r,geo,db)).cached).toBe(false);expect((await service.query(r,geo,db)).cached).toBe(true);}
       const movedGeo={get:(id:string)=>id==='3' ? {...cities[id],longitude:-74.1} : cities[id]};
       expect((await service.query(us(),movedGeo,db)).cached).toBe(false);
-      expect(fetcher).toHaveBeenCalledTimes(5);expect(await db.query('SELECT * FROM road_routes')).toHaveLength(5);
+      expect((await service.query({...us(),vehicle:{...us().vehicle,heightM:4}},geo,db)).cached).toBe(true);expect(fetcher).toHaveBeenCalledTimes(4);expect(await db.query('SELECT * FROM road_routes')).toHaveLength(4);
     }finally{await db.query('DELETE FROM road_routes');await db.close();}
   });
   it('同一服务同时查询相同条件只调用一次，失败不落库且可以重试',async()=>{
@@ -102,30 +104,33 @@ describe.each(databaseDrivers)('陆运数据库复用：%s',driver=>{
 });
 
 describe('真实路线适配与异常隔离（固定接口响应，不调用付费服务）',()=>{
-  it('国内先转换 WGS84 坐标，按货车及正确吨位字段请求；结果区分驾驶与预计时效',async()=>{
+  it('国内先转换 WGS84，使用普通驾车接口和轮渡开关，不发送货车参数',async()=>{
     const fetcher=amapFetch(),service=new RoadService({amapKey:'secret-amap',fetch:fetcher});
     const result=await service.query(request({loadingHours:2}),geo);
     const convert=new URL(String(fetcher.mock.calls[0][0])),route=new URL(String(fetcher.mock.calls[1][0]));
     expect(convert.searchParams.get('coordsys')).toBe('gps');expect(convert.searchParams.get('locations')).toBe('121.460000,31.220000|104.060000,30.660000');
-    expect(route.searchParams.get('origin')).toBe('121.464000,31.224000');expect(route.hostname).toBe('tsapi.amap.com');expect(route.pathname).toBe('/v1/logistics/transport/route/direction/truck');
-    expect(route.searchParams.get('length')).toBe('9.6');expect(route.searchParams.get('avoid_ferry')).toBe('1');expect(route.searchParams.get('consider_load')).toBe('0');
-    expect(route.searchParams.get('load')).toBe('25');expect(route.searchParams.get('weight')).toBe('15');expect(route.searchParams.get('size')).toBe('4');
+    expect(route.searchParams.get('origin')).toBe('121.464000,31.224000');expect(route.hostname).toBe('restapi.amap.com');expect(route.pathname).toBe('/v5/direction/driving');
+    expect(route.searchParams.get('ferry')).toBe('1');expect(route.searchParams.get('show_fields')).toContain('cost');expect(route.searchParams.get('strategy')).toBe('32');
+    expect(route.searchParams.has('load')).toBe(false);expect(route.searchParams.has('size')).toBe(false);
     expect(result.roadKm).toBe(1800);expect(result.drivingHours).toBe(18);expect(result.single.hours).toBe(52);expect(result.dual.hours).toBe(28);
-    expect(result.warnings.join('')).toContain('未填写车牌');expect(result.warnings.join('')).toContain('尚未按实际车辆确认');expect(JSON.stringify(result)).not.toContain('secret-amap');
+    expect(result.warnings.join('')).toContain('普通驾车参考路线');expect(result.mapDrivingHours).toBe(18);expect(JSON.stringify(result)).not.toContain('secret-amap');
   });
-  it('HERE 采用货车模式，厘米和千克单位，检查警告且默认避让摆渡',async()=>{
+  it('HERE 采用普通驾车模式，不发送车辆尺寸或重量，并默认避让摆渡',async()=>{
     const fetcher=vi.fn<typeof fetch>().mockResolvedValue(json(hereBody([hereSection()]))),service=new RoadService({hereKey:'secret-here',fetch:fetcher});
     const result=await service.query(us(),geo),url=new URL(String(fetcher.mock.calls[0][0]));
-    expect(url.searchParams.get('transportMode')).toBe('truck');expect(url.searchParams.get('vehicle[height]')).toBe('380');
-    expect(url.searchParams.get('vehicle[currentWeight]')).toBe('18000');expect(url.searchParams.get('vehicle[grossWeight]')).toBe('25000');
+    expect(url.searchParams.get('transportMode')).toBe('car');expect([...url.searchParams.keys()].some(key=>key.startsWith('vehicle['))).toBe(false);
     expect(url.searchParams.get('avoid[features]')).toContain('carShuttleTrain');expect(result.roadKm).toBe(1800);
   });
-  it('阻止未配置、国家错配、不支持的跨境以及特殊货物；不调用付费接口',async()=>{
+  it('卡车耗时不低于地图拥堵耗时，并明确提示普通路线不作货车适运校验',async()=>{
+    const fetcher=vi.fn<typeof fetch>().mockResolvedValue(json(hereBody([hereSection(36,'car')])));
+    const result=await new RoadService({hereKey:'key',fetch:fetcher}).query({...us(),averageSpeedKph:60,cargoType:'hazardous'},geo);
+    expect(result.mapDrivingHours).toBe(36);expect(result.drivingHours).toBe(36);expect(result.routingMode).toBe('car');expect(result.warnings.join('')).toContain('不校验货车限高');
+  });
+  it('阻止未配置、国家错配及不支持的跨境；不调用外部接口',async()=>{
     const fetcher=vi.fn<typeof fetch>(),service=new RoadService({amapKey:'',hereKey:'',fetch:fetcher});
-    await expect(service.query(request(),geo)).rejects.toThrow('AMAP_TRUCK_KEY');
+    await expect(service.query(request(),geo)).rejects.toThrow('AMAP_WEB_SERVICE_KEY');
     await expect(service.query(request({originCountry:'US'}),geo)).rejects.toThrow('城市与国家');
     await expect(service.query(request({destinationCountry:'GB',destinationCityId:'5'}),geo)).rejects.toThrow('口岸');
-    await expect(service.query(request({cargoType:'hazardous'}),geo)).rejects.toThrow('专门核实');
     expect(fetcher).not.toHaveBeenCalled();expect(JSON.stringify(service.status())).not.toContain('secret');
   });
   it('HERE 关键警告、未知关键警告及无路线均不得显示为可用路线',async()=>{
@@ -143,7 +148,7 @@ describe('真实路线适配与异常隔离（固定接口响应，不调用付�
     }
   });
   it('HERE 即使避让参数被上游忽略也拒绝轮渡，允许后单独拆分里程和耗时',async()=>{
-    const sections=[{summary:{length:100000,duration:7200},transport:{mode:'truck'}},{summary:{length:40000,duration:3600},transport:{mode:'ferry',name:'Dover-Calais'}}];
+    const sections=[{summary:{length:100000,duration:7200},transport:{mode:'car'}},{summary:{length:40000,duration:3600},transport:{mode:'ferry',name:'Dover-Calais'}}];
     const fetcher=vi.fn<typeof fetch>().mockImplementation(async()=>json(hereBody(sections))),service=new RoadService({hereKey:'key',fetch:fetcher});
     await expect(service.query(europe(),geo)).rejects.toThrow('未找到');
     const result=await service.query(europe(true),geo);expect(result.roadKm).toBe(100);expect(result.totalKm).toBe(140);expect(result.drivingHours).toBe(2);expect(result.transferHours).toBe(1);expect(result.warnings.join('')).toContain('边境等待未计入');
@@ -162,7 +167,7 @@ describe('真实路线适配与异常隔离（固定接口响应，不调用付�
     await expect(new RoadService({hereKey:'secret',fetch:vi.fn<typeof fetch>().mockResolvedValue(json({routes:[{sections:[{}]}]}))}).query(us(),geo)).rejects.toThrow('格式异常');
   });
   it('高德 10012 返回明确服务权限提示，安全处理错误码，不输出供应商原始消息',async()=>{
-    const fetcher=vi.fn<typeof fetch>().mockResolvedValueOnce(json({status:'1',locations:'121.464,31.224;104.064,30.664'})).mockResolvedValueOnce(json({errcode:10012,errmsg:'INSUFFICIENT_PRIVILEGES secret-key-in-message'}));
+    const fetcher=vi.fn<typeof fetch>().mockResolvedValueOnce(json({status:'1',locations:'121.464,31.224;104.064,30.664'})).mockResolvedValueOnce(json({status:'0',infocode:10012,info:'INSUFFICIENT_PRIVILEGES secret-key-in-message'}));
     await expect(new RoadService({amapKey:'secret-key-in-message',fetch:fetcher}).query(request(),geo)).rejects.toThrow('高德错误码 10012');
     const bad=vi.fn<typeof fetch>().mockResolvedValue(json({status:'0',infocode:'secret-value',info:'secret-value'}));
     await expect(new RoadService({amapKey:'secret-value',fetch:bad}).query(request(),geo)).rejects.toThrow('高德坐标转换未成功：请检查服务权限、配额或参数');

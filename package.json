@@ -7,6 +7,8 @@
     "node": ">=24.14.0 <25"
   },
   "scripts": {
+    "geo:sync": "node --env-file-if-exists=.env --import tsx scripts/sync-geography.ts",
+    "geo:build": "tsx scripts/build-geography.ts",
     "dev": "node --env-file-if-exists=.env node_modules/concurrently/dist/bin/concurrently.js -k \"tsx watch server/index.ts\" \"vite --host 127.0.0.1\"",
     "build": "tsc --noEmit && vite build && tsc -p tsconfig.server.json",
     "start": "node --env-file-if-exists=.env dist/server/index.js",
@@ -35,12 +37,14 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/yauzl": "^3.4.0",
     "@vitejs/plugin-react": "^5.1.0",
     "concurrently": "^9.2.1",
     "jszip": "^3.10.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.1.12",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "yauzl": "^3.4.0"
   }
 }

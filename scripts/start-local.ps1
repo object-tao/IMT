@@ -8,6 +8,8 @@ if (-not (Test-Path -LiteralPath (Join-Path $imtProject 'node_modules'))) {
     & npm.cmd ci
     if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
 }
+& npm.cmd run geo:sync
+if ($LASTEXITCODE -ne 0) { throw 'Global geography installation failed.' }
 & npm.cmd run build
 if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
 Write-Host 'IMT: http://127.0.0.1:3100 - Keep this window open. Ctrl+C stops the application.'

@@ -15,12 +15,12 @@ CSV 只导入当前分类。点击该分类「CSV 模板」获得完整字段示
 | 分类 | 字段 |
 | --- | --- |
 | 供应商 | id、name、contact、notes |
-| 节点 | id、name、city、country、type、timeZone |
+| 节点 | id、name、city、cityId、country、type、timeZone |
 | 线路 | id、name、supplierId、from、to、mode、transitHours、handlingHours、validFrom、validTo、onDemand、schedule、capabilities、尺寸重量上限、services |
 | 运价 | id、name、laneId、currency、unit、price、minimum、rounding、volumetricDivisor、bands、surcharges、containerType、validFrom、validTo |
 | 汇率 | id、currency、toCny、validFrom、validTo |
 
-日期为 YYYY-MM-DD；币种为三位大写字母。节点时区例：Asia/Shanghai、Europe/London、America/New_York。
+日期为 YYYY-MM-DD；币种为三位大写字母。国家存储 ISO 两位代码（如 CN / GB / US），兼容可识别的旧国家名称。cityId 为 GeoNames 城市 ID；同名城市必须提供 ID 明确归属。节点时区例：Asia/Shanghai、Europe/London、America/New_York。
 
 type：city / warehouse / airport / port / rail / border。mode：road / rail / air / sea / transfer。
 

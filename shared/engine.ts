@@ -2,6 +2,7 @@ import { Decimal } from 'decimal.js';
 import { flagNames, type Catalog, type Demand, type Lane, type Leg, type Candidate, type SolveResult, type TransportNode } from './model.js';
 import { nextDeparture, zoneDate, localToEpoch } from './time.js';
 import { priceRate, totals } from './pricing.js';
+import { sameCity } from './geography.js';
 
 function compatibility(lane: Lane, request: Demand): { warnings: string[]; errors: string[] } {
   const warnings: string[] = [], errors: string[] = [];
@@ -69,7 +70,7 @@ function summarize(legs: Leg[], request: Demand): Candidate {
   return { id: legs.map(l => l.laneId).join('>'), legs, warnings, complete, priceComplete, knownCny, ...(priceComplete ? { totalCny: knownCny } : {}), arrival, hours, lateHours, badges: [] };
 }
 function network(catalog: Catalog, request: Demand) {
-  const origin = catalog.nodes.filter(n => n.city === request.originCity), destination = catalog.nodes.filter(n => n.city === request.destinationCity);
+  const origin = catalog.nodes.filter(n => sameCity(n,{country:request.originCountry,city:request.originCity,cityId:request.originCityId})), destination = catalog.nodes.filter(n => sameCity(n,{country:request.destinationCountry,city:request.destinationCity,cityId:request.destinationCityId}));
   const cityNode = (id: string, city: string, representative: TransportNode): TransportNode => ({ id, version: 1, name: `${city}城市覆盖点`, city, country: representative.country, type: 'city', timeZone: representative.timeZone });
   const originCityNodes = origin.filter(n => n.type === 'city'), destinationCityNodes = destination.filter(n => n.type === 'city');
   const starts = originCityNodes.length ? originCityNodes : origin.length ? [cityNode('__origin__', request.originCity, origin[0])] : [];
@@ -88,7 +89,7 @@ export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[
     if (id.startsWith('gap|')) {
       const [, a, b] = id.split('|');
       const from = nodes.find(n => n.id === a), to = nodes.find(n => n.id === b);
-      if (!from || !to || from.city !== to.city || from.id === to.id) throw new Error('无效的待补全接驳段');
+      if (!from || !to || !sameCity(from,to) || from.id === to.id) throw new Error('无效的待补全接驳段');
       leg = gapLeg(from, to, earliest);
     } else {
       const lane = catalog.lanes.find(l => l.id === id);
@@ -127,7 +128,7 @@ export function solve(catalog: Catalog, request: Demand): SolveResult {
       if (truncated) return;
     }
     if (gaps < 2 && !legs.at(-1)?.missing) {
-      for (const next of nodes.filter(n => n.city === current.city && !visited.has(n.id))) {
+      for (const next of nodes.filter(n => sameCity(n,current) && !visited.has(n.id))) {
         if ((adjacent.get(current.id) ?? []).some(l => l.to === next.id)) continue;
         const leg = gapLeg(current, next, earliest);
         walk(next, [...legs, leg], new Set([...visited, next.id]), gaps + 1);

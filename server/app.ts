@@ -9,12 +9,14 @@ import { resolve } from 'node:path';
 import { z, ZodError } from 'zod';
 import { Database } from './database.js';
 import { Store, AppError } from './store.js';
-import { kinds, requestSchema, type Kind } from '../shared/model.js';
+import { kinds, schemas, requestSchema, nodeSchema } from '../shared/model.js';
+import { countries, countryCode } from '../shared/geography.js';
+import { Geography } from './geography.js';
 import { solve, evaluatePath } from '../shared/engine.js';
 import { demoCatalog } from '../shared/demo.js';
 import { exportDocx, exportHtml } from './export.js';
 
-export async function createApp(options: { database?: Database; password?: string; secret?: string; secureCookie?: boolean; logger?: boolean; clientDir?: string } = {}) {
+export async function createApp(options: { database?: Database; geography?: Geography; password?: string; secret?: string; secureCookie?: boolean; logger?: boolean; clientDir?: string } = {}) {
   const password = options.password ?? process.env.AUTH_PASSWORD;
   const secret = options.secret ?? process.env.SESSION_SECRET ?? randomBytes(32).toString('hex');
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: 5 * 1024 * 1024, requestTimeout: 30000 });
@@ -22,6 +24,8 @@ export async function createApp(options: { database?: Database; password?: strin
   await db.initialize();
   await db.query('CREATE TABLE IF NOT EXISTS auth_sessions (token_hash TEXT PRIMARY KEY, expires_at TEXT NOT NULL)');
   const store = new Store(db);
+  const geography=options.geography ?? new Geography();
+  await store.migrateGeography(geography);
   await app.register(cookie, { secret });
   await app.register(helmet, { contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'"], styleSrc: ["'self'", "'unsafe-inline'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], frameAncestors: ["'none'"] } } });
   await app.register(rateLimit, { max: 180, timeWindow: '1 minute' });
@@ -68,12 +72,18 @@ export async function createApp(options: { database?: Database; password?: strin
     reply.clearCookie('imt_session', { path: '/' }); return { ok: true };
   });
   app.get('/api/catalog', async () => store.catalog());
+  app.get('/api/geo/countries',async()=>({items:countries,metadata:geography.metadata(),available:geography.available}));
+  app.get('/api/geo/cities',async req=>{
+    const query=z.object({country:z.string().length(2),q:z.string().max(100).default(''),offset:z.coerce.number().int().min(0).max(10000000).default(0),limit:z.coerce.number().int().min(1).max(100).default(40)}).parse(req.query);
+    if(!countryCode(query.country))throw new AppError(400,'无效国家');
+    return geography.search(query.country,query.q,query.offset,query.limit);
+  });
   for (const kind of kinds) {
-    app.post(`/api/resources/${kind}`, async (req, reply) => reply.code(201).send(await store.upsert(kind, req.body, true)));
+    app.post(`/api/resources/${kind}`, async (req, reply) => reply.code(201).send(await store.upsert(kind, kind==='nodes' ? geography.bindNode(nodeSchema.parse(req.body),true) : req.body, true)));
     app.put(`/api/resources/${kind}/:id`, async req => {
       const { id } = req.params as { id: string };
       if ((req.body as any)?.id !== id) throw new AppError(400, '资源 ID 不一致');
-      return store.upsert(kind, req.body, false);
+      return store.upsert(kind, kind==='nodes' ? geography.bindNode(nodeSchema.parse(req.body),true) : req.body, false);
     });
     app.delete(`/api/resources/${kind}/:id`, async req => {
       const { id } = req.params as { id: string }, { version } = z.object({ version: z.coerce.number().int().positive() }).parse(req.query);
@@ -82,24 +92,26 @@ export async function createApp(options: { database?: Database; password?: strin
   }
   app.post('/api/catalog/import', async req => {
     const body = z.object(Object.fromEntries(kinds.map(k => [k, z.array(z.unknown()).max(10000).optional()]))).strict().parse(req.body);
-    return store.importCatalog(body as Record<string, unknown[]>);
+    const imported=body as Record<string, unknown[]>;
+    if(imported.nodes)imported.nodes=imported.nodes.map(node=>geography.bindNode(nodeSchema.parse(node),true));
+    return store.importCatalog(imported);
   });
-  app.post('/api/catalog/demo', async () => store.importCatalog(demoCatalog(), true));
+  app.post('/api/catalog/demo', async () => {const demo=demoCatalog();demo.nodes=demo.nodes.map(n=>geography.bindNode(nodeSchema.parse(n)));return store.importCatalog(demo,true);});
   app.post('/api/solve', async req => {
-    const request = requestSchema.parse(req.body);
+    const request = geography.bindDemand(requestSchema.parse(req.body));
     const demandId = await store.saveDemand(request);
     return { ...solve(await store.catalog(), request), demandId };
   });
   app.post('/api/evaluate', async req => {
     const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8) }).parse(req.body);
-    try { return evaluatePath(await store.catalog(), body.request, body.laneIds); }
+    try { return evaluatePath(await store.catalog(), geography.bindDemand(body.request), body.laneIds); }
     catch (e) { throw new AppError(400, (e as Error).message); }
   });
   app.get('/api/plans', async () => store.plans());
   app.get('/api/plans/:id', async req => store.plan((req.params as { id: string }).id));
   app.post('/api/plans', async req => {
     const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8), title: z.string().trim().min(1).max(200), notes: z.string().max(2000).default(''), groupId: z.string().optional(), expectedVersion: z.number().int().nonnegative().optional() }).parse(req.body);
-    try { return await store.savePlan(body); } catch (e) { if (e instanceof AppError) throw e; throw new AppError(400, (e as Error).message); }
+    try { return await store.savePlan({...body,request:geography.bindDemand(body.request)}); } catch (e) { if (e instanceof AppError) throw e; throw new AppError(400, (e as Error).message); }
   });
   app.get('/api/plans/:id/export', async (req, reply) => {
     const { id } = req.params as { id: string }, query = z.object({ format: z.enum(['docx', 'html']), audience: z.enum(['internal', 'customer']) }).parse(req.query);
@@ -112,6 +124,6 @@ export async function createApp(options: { database?: Database; password?: strin
     await app.register(fastifyStatic, { root: clientDir, wildcard: false });
     app.setNotFoundHandler((req, reply) => req.url.startsWith('/api/') ? reply.code(404).send({ message: '接口不存在' }) : reply.sendFile('index.html'));
   }
-  app.addHook('onClose', async () => db.close());
+  app.addHook('onClose', async () => {geography.close();await db.close();});
   return { app, store, db };
 }

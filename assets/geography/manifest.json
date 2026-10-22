@@ -1,0 +1,14 @@
+{
+  "source": "GeoNames",
+  "sourceUrl": "https://download.geonames.org/export/dump/",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "builtAt": "2026-10-22T04:25:23.078Z",
+  "countries": 252,
+  "cities": 5232157,
+  "countriesWithCities": 248,
+  "scope": "All GeoNames feature-class P populated places; no population threshold. Source coverage is not guaranteed complete.",
+  "sha256": "7708f2287a8b160c6c6fe4dde8508034e496eaa6ff955decb19fd090d1ba0859",
+  "compressedBytes": 401051105,
+  "url": "https://github.com/object-tao/IMT/releases/download/geography-2026-10-22/world.sqlite.gz"
+}

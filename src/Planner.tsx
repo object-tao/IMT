@@ -5,20 +5,23 @@ import { totals } from '../shared/pricing';
 import { demoDemand } from '../shared/demo';
 import { api } from './api';
 import { Field, Busy, fmt, dateTime, inputDate } from './components';
-export function freshDemand(): Demand { const example = demoDemand(); return { ...example, originCity: '', destinationCity: '', deadline: undefined, cargo: [{ ...example.cargo[0], name: '', pieces: 1, weightKg: 100 }], notes: '' }; }
+import { CountrySelect, CitySelect } from './LocationFields';
+import { countryName, sameCity } from '../shared/geography';
+export function freshDemand(): Demand { const example = demoDemand(); return { ...example, originCountry: 'CN', originCity: '', originCityId: undefined, destinationCountry: '', destinationCity: '', destinationCityId: undefined, deadline: undefined, cargo: [{ ...example.cargo[0], name: '', pieces: 1, weightKg: 100 }], notes: '' }; }
 export function ModeIcon({ mode, size = 16 }: { mode: string; size?: number }) { const Icon = mode === 'air' ? Plane : mode === 'sea' ? Ship : mode === 'rail' ? TrainFront : Truck; return <Icon size={size}/>; }
 export function Planner({ catalog, demand, setDemand, openCandidate, report, busy, run }: { catalog: Catalog; demand: Demand; setDemand: (d: Demand) => void; openCandidate: (c: Candidate,r: Demand) => void; report: (s: string) => void; busy: boolean; run: (fn: () => Promise<void>) => void }) {
   const [result,setResult] = useState<SolveResult | null>(null), [computed,setComputed] = useState<Demand | null>(null);
   const [filter,setFilter] = useState('all');
   const update = (key: keyof Demand, value: any) => setDemand({ ...demand,[key]:value });
-  const cargo = totals(demand), cities = [...new Set(catalog.nodes.map(n => n.city))].sort();
+  const cargo = totals(demand);
   const items = result?.candidates.filter(c => filter === 'all' || (filter === 'complete' ? c.complete : !c.complete)) ?? [];
   return <>
     <div className="page-intro"><div><div className="eyebrow">MULTIMODAL PLANNING</div><h1>每一程，都有更好的连接。</h1><p>从运输需求出发，组合资源，找到适合的交付方案。</p></div><div className="intro-mark"><Route size={30}/><span>公路 · 铁路 · 航空 · 海运</span></div></div>
     <div className="planning-layout">
       <form className="panel demand-panel" onSubmit={e => { e.preventDefault(); run(async () => { const data = await api<SolveResult>('/solve','POST',demand); setComputed(structuredClone(demand)); setResult(data); setFilter('all'); report(`已生成 ${data.candidates.length} 个候选方案`); }); }}>
         <div className="panel-heading"><div><h2>运输需求</h2><p>输入城市、货物与交付要求</p></div><span className="step-label">01 / INPUT</span></div>
-        <div className="route-input"><Field label="起运城市"><input aria-label="起运城市" placeholder="例如：上海" list="cities" required value={demand.originCity} onChange={e => update('originCity',e.target.value.trim())}/></Field><div className="route-input-line"><span/><ArrowRight size={14}/><span/></div><Field label="目的城市"><input aria-label="目的城市" placeholder="例如：伦敦" list="cities" required value={demand.destinationCity} onChange={e => update('destinationCity',e.target.value.trim())}/></Field><datalist id="cities">{cities.map(c => <option key={c} value={c}/>)}</datalist></div>
+        <div className="route-input"><CountrySelect label="起运国家" value={demand.originCountry} onChange={originCountry=>setDemand({...demand,originCountry,originCity:'',originCityId:undefined})}/><CitySelect label="起运城市" country={demand.originCountry} value={demand.originCity} cityId={demand.originCityId} onChange={(originCity,originCityId)=>setDemand({...demand,originCity,originCityId})}/><div className="route-input-line"><span/><ArrowRight size={14}/><span/></div><CountrySelect label="目的国家" value={demand.destinationCountry} onChange={destinationCountry=>setDemand({...demand,destinationCountry,destinationCity:'',destinationCityId:undefined})}/><CitySelect label="目的城市" country={demand.destinationCountry} value={demand.destinationCity} cityId={demand.destinationCityId} onChange={(destinationCity,destinationCityId)=>setDemand({...demand,destinationCity,destinationCityId})}/></div>
+        <p className="input-hint">可选择全球地名库中的城市；运输方案根据已维护线路生成。</p>
         <div className="form-grid"><Field label="最早可提货时间"><input aria-label="最早可提货时间" type="datetime-local" required value={inputDate(demand.readyAt)} onChange={e => { if(e.target.value) update('readyAt',new Date(e.target.value).toISOString()); }}/></Field><Field label="最晚要求送达（可选）"><input aria-label="最晚要求送达" type="datetime-local" value={demand.deadline ? inputDate(demand.deadline) : ''} onChange={e => update('deadline',e.target.value ? new Date(e.target.value).toISOString() : undefined)}/></Field></div>
         <p className="input-hint">输入时间采用设备当地时区，方案结果统一展示北京时间。</p>
         <div className="section-heading"><h3><Package size={16}/>货物明细</h3><span>{cargo.pieces} 件 · {fmt(cargo.kg.toNumber())} kg · {fmt(cargo.cbm.toNumber())} m³</span></div>
@@ -36,7 +39,7 @@ export function Planner({ catalog, demand, setDemand, openCandidate, report, bus
         <button disabled={busy || !catalog.lanes.length} className="button primary solve-button"><Busy busy={busy}><Sparkles size={17}/>生成运输方案<ArrowRight size={17}/></Busy></button>
         <p className="input-hint center">根据已维护资源计算 · 不自动确认舱位及运力</p>
       </form>
-      <section className="result-area"><div className="result-heading"><div><h2>候选方案 {result && <span className="count-pill">{result.candidates.length}</span>}</h2><p>{computed ? `${computed.originCity} → ${computed.destinationCity} · ${computed.cargo.length} 组货物` : '完整的路径，透明的取舍。'}</p></div>{result && <select aria-label="方案筛选" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部方案</option><option value="complete">资料完整</option><option value="pending">待补全 / 待确认</option></select>}</div>
+      <section className="result-area"><div className="result-heading"><div><h2>候选方案 {result && <span className="count-pill">{result.candidates.length}</span>}</h2><p>{computed ? `${countryName(computed.originCountry)}·${computed.originCity} → ${countryName(computed.destinationCountry)}·${computed.destinationCity} · ${computed.cargo.length} 组货物` : '完整的路径，透明的取舍。'}</p></div>{result && <select aria-label="方案筛选" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部方案</option><option value="complete">资料完整</option><option value="pending">待补全 / 待确认</option></select>}</div>
         {!result ? <div className="empty-planner"><NetworkIllustration/><div className="eyebrow">CONNECT THE POSSIBILITIES</div><h2>让分散的资源，成为完整的方案。</h2><p>填写左侧需求，系统会连接供应商线路，<br/>比较参考费用、时效和适运条件。</p><div className="empty-features"><span><CircleCheck size={16}/>承运条件校验</span><span><Clock3 size={16}/>班期衔接</span><span><Route size={16}/>多路径比较</span></div></div> : <>
           {result.diagnostics.length > 0 && <div className="notice warning">{result.diagnostics.map((d,i) => <p key={i}><CircleAlert size={15}/>{d}</p>)}</div>}
           {items.map((c,i) => <CandidateCard key={c.id} candidate={c} index={i} open={() => openCandidate(c,computed!)}/>)}
@@ -49,7 +52,7 @@ export function Planner({ catalog, demand, setDemand, openCandidate, report, bus
 }
 function CandidateCard({ candidate: c,index,open }: { candidate: Candidate; index: number; open: () => void }) {
   const nodes = [c.legs[0].from,...c.legs.map(l => l.to)];
-  const cities = nodes.filter((n,i) => !i || n.city !== nodes[i - 1].city).map(n => n.city);
+  const cities = nodes.filter((n,i) => !i || !sameCity(n,nodes[i - 1])).map(n => `${countryName(n.country)}·${n.city}`);
   return <article className={`candidate-card ${c.badges.length ? 'recommended' : ''}`}>
     <div className="candidate-top"><span className="candidate-number">方案 {String(index + 1).padStart(2,'0')}</span><div className="badges">{c.badges.map(b => <span key={b} className="badge teal">{b}</span>)}<span className={`badge ${c.complete ? 'neutral' : 'amber'}`}>{c.complete ? '资料完整' : '待确认'}</span></div></div>
     <h3 className="city-path">{cities.map((city,i) => <span key={i}>{i > 0 && <ArrowRight size={15}/>} {city}</span>)}</h3>

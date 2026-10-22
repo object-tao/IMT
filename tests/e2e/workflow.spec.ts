@@ -41,3 +41,34 @@ test('资源编辑和移动端布局', async ({ page }) => {
   await expect(page.getByRole('heading',{name:'运输需求',exact:true})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+test('全球城市按国家联动选择，更换国家清除原城市',async({page})=>{
+  await page.goto('/');
+  await expect(page.locator('.geo-status')).toContainText('个国家 / 地区');
+  await page.getByRole('combobox',{name:'起运国家',exact:true}).selectOption('US');
+  await page.getByRole('combobox',{name:'起运城市',exact:true}).fill('Springfield');
+  const list=page.getByRole('listbox',{name:'起运城市候选城市'});
+  await expect(list.getByRole('option').first()).toBeVisible();
+  expect(await list.getByRole('option').count()).toBeGreaterThan(1);
+  await list.getByRole('option').first().click();
+  await page.getByRole('combobox',{name:'起运国家',exact:true}).selectOption('GB');
+  await expect(page.getByRole('combobox',{name:'起运城市',exact:true})).toHaveValue('');
+  await page.getByRole('combobox',{name:'起运城市',exact:true}).fill('伦敦');
+  await page.getByRole('listbox',{name:'起运城市候选城市'}).getByRole('option').first().click();
+  await expect(page.getByRole('combobox',{name:'起运城市',exact:true})).toHaveValue('London');
+  await page.getByRole('combobox',{name:'目的国家',exact:true}).selectOption('CA');
+  await page.getByRole('combobox',{name:'目的城市',exact:true}).fill('London');
+  await page.getByRole('listbox',{name:'目的城市候选城市'}).getByRole('option').first().click();
+  await expect(page.getByRole('combobox',{name:'目的城市',exact:true})).toHaveValue('London');
+});
+test('运输节点从全球城市库选择并带入当地时区',async({page})=>{
+  await page.goto('/');await page.getByRole('button',{name:/资源网络/}).click();
+  await page.locator('.tabs').getByRole('button',{name:/运输节点/}).click();
+  await page.getByRole('button',{name:'新增运输节点'}).click();
+  await page.getByRole('textbox',{name:'名称',exact:true}).fill('纽约测试覆盖点');
+  await page.getByRole('combobox',{name:'国家',exact:true}).selectOption('US');
+  await page.getByRole('combobox',{name:'城市',exact:true}).fill('New York');
+  await page.getByRole('listbox',{name:'城市候选城市'}).getByRole('option').first().click();
+  await expect(page.getByLabel('当地时区（如 Europe/London）')).toHaveValue('America/New_York');
+  await page.getByRole('button',{name:'保存运输节点'}).click();
+  await expect(page.locator('.resource-table')).toContainText('纽约测试覆盖点');
+});

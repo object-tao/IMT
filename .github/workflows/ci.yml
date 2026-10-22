@@ -33,6 +33,7 @@ jobs:
           node-version: '24.14.0'
           cache: npm
       - run: npm ci
+      - run: npm run geo:sync
       - run: npm run build
       - run: npm test
         env:

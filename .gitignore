@@ -10,3 +10,6 @@ test-results/
 *.log
 *.sqlite*
 .local/
+assets/geography/*.sqlite*
+assets/geography/*.gz
+assets/geography/build-manifest.json

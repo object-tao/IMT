@@ -6,6 +6,7 @@ import { csvEntities, writeCsv } from '../shared/csv';
 import { api, downloadText } from './api';
 import { Modal, Busy } from './components';
 import { ResourceEditor, blankResource, kindNames } from './ResourceEditor';
+import { countryName } from '../shared/geography';
 export function Resources({ catalog, refresh, run, busy, report }: { catalog: Catalog; refresh: () => Promise<void>; run: (fn: () => Promise<void>) => void; busy: boolean; report: (v: string) => void }) {
   const [kind,setKind] = useState<Kind>('suppliers'), [search,setSearch] = useState(''), [editing,setEditing] = useState<any>(), [isNew,setIsNew] = useState(false), [remove,setRemove] = useState<any>(), [importing,setImporting] = useState(false), [preview,setPreview] = useState<Catalog | null>(null), [fileError,setFileError] = useState('');
   const list = (catalog[kind] as any[]).filter(item => JSON.stringify(item).toLowerCase().includes(search.toLowerCase()));
@@ -13,7 +14,7 @@ export function Resources({ catalog, refresh, run, busy, report }: { catalog: Ca
   function cells(item: any) {
     switch (kind) {
       case 'suppliers': return [item.name,item.contact || '—',item.notes || '—'];
-      case 'nodes': return [item.name,`${item.city} / ${item.country}`,`${({ city:'城市覆盖点',warehouse:'仓库',airport:'机场',port:'港口',rail:'铁路站',border:'口岸' } as any)[item.type]} · ${item.timeZone}`];
+      case 'nodes': return [item.name,`${countryName(item.country)} / ${item.city}${item.cityId ? '' : ' · 城市归属待确认'}`,`${({ city:'城市覆盖点',warehouse:'仓库',airport:'机场',port:'港口',rail:'铁路站',border:'口岸' } as any)[item.type]} · ${item.timeZone}`];
       case 'lanes': return [item.name,`${catalog.nodes.find(n => n.id === item.from)?.name} → ${catalog.nodes.find(n => n.id === item.to)?.name}`,`${modeNames[item.mode]} · ${item.transitHours} 小时`];
       case 'rates': return [item.name,catalog.lanes.find(l => l.id === item.laneId)?.name,`${item.price} ${item.currency} / ${unitNames[item.unit]} · 至 ${item.validTo}`];
       case 'fx': return [item.currency,`1 ${item.currency} = ${item.toCny} CNY`,`${item.validFrom} 至 ${item.validTo}`];

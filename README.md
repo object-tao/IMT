@@ -12,6 +12,7 @@
 Set-Location D:\CodexSessionArchive\IMT\repo
 $env:npm_config_cache = 'D:\CodexSessionArchive\npm-cache'
 npm ci
+npm run geo:sync
 npm run build
 npm start
 ```
@@ -24,15 +25,15 @@ npm start
 
 ## 业务操作
 
-1. 在「资源网络」录入供应商和运输节点。城市名称必须一致；机场、仓库等节点使用准确的 IANA 时区。
+1. 在「资源网络」录入供应商和运输节点。先选国家，再从全球城市库中选择具体城市；机场、仓库等节点使用准确的 IANA 时区。
 2. 录入分段线路，选择起止节点、供应商、运输耗时、处理时间、班期、承运限制及有效期。
 3. 录入线路运价及汇率。城市级端点请建立「城市覆盖点」并维护到货站等节点的资源，以免省略提货或派送。
-4. 在「方案工作台」填写城市、时间及逐件货物明细，生成候选方案。
+4. 在「方案工作台」选择起运国家／城市及目的国家／城市，填写时间及逐件货物明细，生成候选方案。
 5. 查看方案的分段费用、服务范围与待确认事项，可替换、增加、删除运输段后重新校验。
 6. 保存方案，在「方案档案」查看版本，导出内部版或客户版。客户版隐藏供应商列和内部备注。
 7. PDF 通过「打印 / PDF」打开专用打印页面，再用浏览器「另存为 PDF」。已提供 A4 横向打印样式；Word 为真实 `.docx` 文件。
 
-详细约定见 [需求基线](docs/requirements.md)、[运算规则与边界](docs/engine.md)、[导入指南](docs/import.md)、[部署与回滚](docs/deployment.md)。
+详细约定见 [需求基线](docs/requirements.md)、[运算规则与边界](docs/engine.md)、[导入指南](docs/import.md)、[全球地名库](docs/geography.md)、[部署与回滚](docs/deployment.md)。
 
 ## 技术结构
 

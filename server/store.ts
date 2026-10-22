@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Database, type Sql } from './database.js';
 import { schemas, kinds, emptyCatalog, type Kind, type Catalog, type SavedPlan, type Demand } from '../shared/model.js';
 import { evaluatePath } from '../shared/engine.js';
+import { upgradePlanLocation, type Geography } from './geography.js';
 
 export class AppError extends Error { constructor(public statusCode: number, message: string) { super(message); } }
 export function validateCatalog(catalog: Catalog) {
@@ -17,6 +18,22 @@ export function validateCatalog(catalog: Catalog) {
 }
 export class Store {
   constructor(public db: Database) {}
+  async migrateGeography(geo: Geography) {
+    if(!geo.available)return;
+    await this.db.transaction(async tx=>{
+      if((await tx.query('SELECT version FROM migrations WHERE version=2')).length)return;
+      const catalog=await this.catalog(tx);
+      for(const node of catalog.nodes){
+        const updated=geo.bindNode(node);
+        if(JSON.stringify(updated)!==JSON.stringify(node)){
+          updated.version=node.version+1;
+          await tx.query('UPDATE resources SET version=?,payload=?,updated_at=? WHERE kind=? AND id=?',[updated.version,JSON.stringify(updated),new Date().toISOString(),'nodes',node.id]);
+        }
+      }
+      await tx.query('INSERT INTO migrations(version,applied_at) VALUES(2,?)',[new Date().toISOString()]);
+      await this.audit(tx,'geography.migrate','nodes');
+    });
+  }
   async catalog(tx: Sql = this.db): Promise<Catalog> {
     const rows = await tx.query('SELECT kind,payload FROM resources ORDER BY kind,id');
     const result = emptyCatalog();
@@ -89,6 +106,6 @@ export class Store {
       return saved;
     });
   }
-  async plans() { return (await this.db.query('SELECT payload FROM plan_versions ORDER BY created_at DESC LIMIT 500')).map(row => { const p: SavedPlan = JSON.parse(row.payload); const { catalog, ...rest } = p; return rest; }); }
-  async plan(id: string): Promise<SavedPlan> { const rows = await this.db.query('SELECT payload FROM plan_versions WHERE id=?', [id]); if (!rows.length) throw new AppError(404, '方案不存在'); return JSON.parse(rows[0].payload); }
+  async plans() { return (await this.db.query('SELECT payload FROM plan_versions ORDER BY created_at DESC LIMIT 500')).map(row => { const p = upgradePlanLocation(JSON.parse(row.payload)); const { catalog, ...rest } = p; return rest; }); }
+  async plan(id: string): Promise<SavedPlan> { const rows = await this.db.query('SELECT payload FROM plan_versions WHERE id=?', [id]); if (!rows.length) throw new AppError(404, '方案不存在'); return upgradePlanLocation(JSON.parse(rows[0].payload)); }
 }

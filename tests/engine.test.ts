@@ -27,7 +27,7 @@ describe('多式联运方案', () => {
     expect(c.legs.some(l => l.missing)).toBe(true); expect(c.complete).toBe(false); expect(c.badges).toEqual([]);
   });
   it('不能从起运城市机场直接出发而绕过城市提货', () => {
-    const request = { ...demand(), originCity:'成都' };
+    const request = { ...demand(), originCity:'成都', originCityId:undefined };
     const result = solve(demoCatalog(),request);
     expect(result.candidates.every(c => c.legs[0].from.type === 'city' && c.legs[0].missing)).toBe(true);
   });
@@ -75,7 +75,7 @@ describe('多式联运方案', () => {
     expect(() => evaluatePath(demoCatalog(),demand(),['l-dom','l-air-a','l-uk-a'])).toThrow('不连续');
     expect(() => evaluatePath(demoCatalog(),demand(),['l-dom'])).toThrow('未到达');
   });
-  it('没有起运资源时解释原因', () => { expect(solve(demoCatalog(),{...demand(),originCity:'未知城市'}).diagnostics.join()).toContain('起运城市'); });
+  it('没有起运资源时解释原因', () => { expect(solve(demoCatalog(),{...demand(),originCity:'未知城市',originCityId:undefined}).diagnostics.join()).toContain('起运城市'); });
   it('输入格式拒绝负数、空货物和倒置时间', () => {
     expect(requestSchema.safeParse({...demand(),cargo:[]}).success).toBe(false);
     expect(requestSchema.safeParse({...demand(),deadline:'2020-01-01T00:00:00Z'}).success).toBe(false);

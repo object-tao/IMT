@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { countryCode, sameCity } from './geography.js';
 
 export const modes = ['road', 'rail', 'air', 'sea', 'transfer'] as const;
 export const modeNames: Record<string, string> = { road: '公路', rail: '铁路', air: '航空', sea: '海运', transfer: '接驳' };
@@ -13,7 +14,9 @@ const positive = z.number().finite().positive().max(1e12);
 const amount = z.number().finite().nonnegative().max(1e12);
 export const entityBase = z.object({ id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/, 'ID 仅支持字母、数字、横线、下划线和点'), version: z.number().int().positive().default(1) });
 export const supplierSchema = entityBase.extend({ name: text, contact: z.string().max(300).default(''), notes: z.string().max(2000).default('') });
-export const nodeSchema = entityBase.extend({ name: text, city: text, country: text, type: z.enum(['city', 'warehouse', 'airport', 'port', 'rail', 'border']), timeZone: text.refine(v => { try { new Intl.DateTimeFormat('en', { timeZone: v }); return true; } catch { return false; } }, '无效时区') });
+export const countrySchema = z.string().transform(value=>countryCode(value) ?? '').pipe(z.string().regex(/^[A-Z]{2}$/, '请选择有效国家或地区'));
+const cityIdSchema = z.string().regex(/^\d{1,12}$/, '无效城市标识');
+export const nodeSchema = entityBase.extend({ name: text, city: text, cityId: cityIdSchema.optional(), country: countrySchema, type: z.enum(['city', 'warehouse', 'airport', 'port', 'rail', 'border']), timeZone: text.refine(v => { try { new Intl.DateTimeFormat('en', { timeZone: v }); return true; } catch { return false; } }, '无效时区') });
 const scheduleSchema = z.object({
   weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7),
   departureTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -48,11 +51,11 @@ export const cargoSchema = z.object({
   packaging: z.string().max(100).default(''),
 });
 export const requestSchema = z.object({
-  originCity: text, destinationCity: text, readyAt: timestamp, deadline: timestamp.optional(),
+  originCountry: countrySchema, originCity: text, originCityId: cityIdSchema.optional(), destinationCountry: countrySchema, destinationCity: text, destinationCityId: cityIdSchema.optional(), readyAt: timestamp, deadline: timestamp.optional(),
   cargo: z.array(cargoSchema).min(1).max(100), vehicleCount: z.number().int().positive().max(10000).optional(),
   containerCount: z.number().int().positive().max(10000).optional(), containerType: z.string().max(30).default(''),
   notes: z.string().max(2000).default(''),
-}).refine(v => v.originCity !== v.destinationCity, '起运城市与目的城市不能相同').refine(v => !v.deadline || Date.parse(v.deadline) >= Date.parse(v.readyAt), '最晚送达不能早于可提货时间');
+}).refine(v => !sameCity({country:v.originCountry,city:v.originCity,cityId:v.originCityId},{country:v.destinationCountry,city:v.destinationCity,cityId:v.destinationCityId}), '起运地与目的地不能是同一国家的同一城市').refine(v => !v.deadline || Date.parse(v.deadline) >= Date.parse(v.readyAt), '最晚送达不能早于可提货时间');
 export const schemas = { suppliers: supplierSchema, nodes: nodeSchema, lanes: laneSchema, rates: rateSchema, fx: fxSchema };
 export const kinds = ['suppliers', 'nodes', 'lanes', 'rates', 'fx'] as const;
 export type Kind = typeof kinds[number];

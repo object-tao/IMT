@@ -1,0 +1,3026 @@
+[
+  {
+    "code": "AD",
+    "name": "安道尔",
+    "nameEn": "Andorra",
+    "iso3": "AND",
+    "capital": "Andorra la Vella",
+    "aliases": [
+      "Andorra",
+      "Andorra",
+      "AND"
+    ]
+  },
+  {
+    "code": "AE",
+    "name": "阿拉伯联合酋长国",
+    "nameEn": "United Arab Emirates",
+    "iso3": "ARE",
+    "capital": "Abu Dhabi",
+    "aliases": [
+      "United Arab Emirates",
+      "United Arab Emirates",
+      "ARE"
+    ]
+  },
+  {
+    "code": "AF",
+    "name": "阿富汗",
+    "nameEn": "Afghanistan",
+    "iso3": "AFG",
+    "capital": "Kabul",
+    "aliases": [
+      "Afghanistan",
+      "Afghanistan",
+      "AFG"
+    ]
+  },
+  {
+    "code": "AG",
+    "name": "安提瓜和巴布达",
+    "nameEn": "Antigua and Barbuda",
+    "iso3": "ATG",
+    "capital": "St. John's",
+    "aliases": [
+      "Antigua & Barbuda",
+      "Antigua and Barbuda",
+      "ATG"
+    ]
+  },
+  {
+    "code": "AI",
+    "name": "安圭拉",
+    "nameEn": "Anguilla",
+    "iso3": "AIA",
+    "capital": "The Valley",
+    "aliases": [
+      "Anguilla",
+      "Anguilla",
+      "AIA"
+    ]
+  },
+  {
+    "code": "AL",
+    "name": "阿尔巴尼亚",
+    "nameEn": "Albania",
+    "iso3": "ALB",
+    "capital": "Tirana",
+    "aliases": [
+      "Albania",
+      "Albania",
+      "ALB"
+    ]
+  },
+  {
+    "code": "AM",
+    "name": "亚美尼亚",
+    "nameEn": "Armenia",
+    "iso3": "ARM",
+    "capital": "Yerevan",
+    "aliases": [
+      "Armenia",
+      "Armenia",
+      "ARM"
+    ]
+  },
+  {
+    "code": "AO",
+    "name": "安哥拉",
+    "nameEn": "Angola",
+    "iso3": "AGO",
+    "capital": "Luanda",
+    "aliases": [
+      "Angola",
+      "Angola",
+      "AGO"
+    ]
+  },
+  {
+    "code": "AQ",
+    "name": "南极洲",
+    "nameEn": "Antarctica",
+    "iso3": "ATA",
+    "capital": "",
+    "aliases": [
+      "Antarctica",
+      "Antarctica",
+      "ATA"
+    ]
+  },
+  {
+    "code": "AR",
+    "name": "阿根廷",
+    "nameEn": "Argentina",
+    "iso3": "ARG",
+    "capital": "Buenos Aires",
+    "aliases": [
+      "Argentina",
+      "Argentina",
+      "ARG"
+    ]
+  },
+  {
+    "code": "AS",
+    "name": "美属萨摩亚",
+    "nameEn": "American Samoa",
+    "iso3": "ASM",
+    "capital": "Pago Pago",
+    "aliases": [
+      "American Samoa",
+      "American Samoa",
+      "ASM"
+    ]
+  },
+  {
+    "code": "AT",
+    "name": "奥地利",
+    "nameEn": "Austria",
+    "iso3": "AUT",
+    "capital": "Vienna",
+    "aliases": [
+      "Austria",
+      "Austria",
+      "AUT"
+    ]
+  },
+  {
+    "code": "AU",
+    "name": "澳大利亚",
+    "nameEn": "Australia",
+    "iso3": "AUS",
+    "capital": "Canberra",
+    "aliases": [
+      "Australia",
+      "Australia",
+      "AUS"
+    ]
+  },
+  {
+    "code": "AW",
+    "name": "阿鲁巴",
+    "nameEn": "Aruba",
+    "iso3": "ABW",
+    "capital": "Oranjestad",
+    "aliases": [
+      "Aruba",
+      "Aruba",
+      "ABW"
+    ]
+  },
+  {
+    "code": "AX",
+    "name": "奥兰群岛",
+    "nameEn": "Aland Islands",
+    "iso3": "ALA",
+    "capital": "Mariehamn",
+    "aliases": [
+      "Åland Islands",
+      "Aland Islands",
+      "ALA"
+    ]
+  },
+  {
+    "code": "AZ",
+    "name": "阿塞拜疆",
+    "nameEn": "Azerbaijan",
+    "iso3": "AZE",
+    "capital": "Baku",
+    "aliases": [
+      "Azerbaijan",
+      "Azerbaijan",
+      "AZE"
+    ]
+  },
+  {
+    "code": "BA",
+    "name": "波斯尼亚和黑塞哥维那",
+    "nameEn": "Bosnia and Herzegovina",
+    "iso3": "BIH",
+    "capital": "Sarajevo",
+    "aliases": [
+      "Bosnia & Herzegovina",
+      "Bosnia and Herzegovina",
+      "BIH"
+    ]
+  },
+  {
+    "code": "BB",
+    "name": "巴巴多斯",
+    "nameEn": "Barbados",
+    "iso3": "BRB",
+    "capital": "Bridgetown",
+    "aliases": [
+      "Barbados",
+      "Barbados",
+      "BRB"
+    ]
+  },
+  {
+    "code": "BD",
+    "name": "孟加拉国",
+    "nameEn": "Bangladesh",
+    "iso3": "BGD",
+    "capital": "Dhaka",
+    "aliases": [
+      "Bangladesh",
+      "Bangladesh",
+      "BGD"
+    ]
+  },
+  {
+    "code": "BE",
+    "name": "比利时",
+    "nameEn": "Belgium",
+    "iso3": "BEL",
+    "capital": "Brussels",
+    "aliases": [
+      "Belgium",
+      "Belgium",
+      "BEL"
+    ]
+  },
+  {
+    "code": "BF",
+    "name": "布基纳法索",
+    "nameEn": "Burkina Faso",
+    "iso3": "BFA",
+    "capital": "Ouagadougou",
+    "aliases": [
+      "Burkina Faso",
+      "Burkina Faso",
+      "BFA"
+    ]
+  },
+  {
+    "code": "BG",
+    "name": "保加利亚",
+    "nameEn": "Bulgaria",
+    "iso3": "BGR",
+    "capital": "Sofia",
+    "aliases": [
+      "Bulgaria",
+      "Bulgaria",
+      "BGR"
+    ]
+  },
+  {
+    "code": "BH",
+    "name": "巴林",
+    "nameEn": "Bahrain",
+    "iso3": "BHR",
+    "capital": "Manama",
+    "aliases": [
+      "Bahrain",
+      "Bahrain",
+      "BHR"
+    ]
+  },
+  {
+    "code": "BI",
+    "name": "布隆迪",
+    "nameEn": "Burundi",
+    "iso3": "BDI",
+    "capital": "Gitega",
+    "aliases": [
+      "Burundi",
+      "Burundi",
+      "BDI"
+    ]
+  },
+  {
+    "code": "BJ",
+    "name": "贝宁",
+    "nameEn": "Benin",
+    "iso3": "BEN",
+    "capital": "Porto-Novo",
+    "aliases": [
+      "Benin",
+      "Benin",
+      "BEN"
+    ]
+  },
+  {
+    "code": "BL",
+    "name": "圣巴泰勒米",
+    "nameEn": "Saint Barthelemy",
+    "iso3": "BLM",
+    "capital": "Gustavia",
+    "aliases": [
+      "St. Barthélemy",
+      "Saint Barthelemy",
+      "BLM"
+    ]
+  },
+  {
+    "code": "BM",
+    "name": "百慕大",
+    "nameEn": "Bermuda",
+    "iso3": "BMU",
+    "capital": "Hamilton",
+    "aliases": [
+      "Bermuda",
+      "Bermuda",
+      "BMU"
+    ]
+  },
+  {
+    "code": "BN",
+    "name": "文莱",
+    "nameEn": "Brunei",
+    "iso3": "BRN",
+    "capital": "Bandar Seri Begawan",
+    "aliases": [
+      "Brunei",
+      "Brunei",
+      "BRN"
+    ]
+  },
+  {
+    "code": "BO",
+    "name": "玻利维亚",
+    "nameEn": "Bolivia",
+    "iso3": "BOL",
+    "capital": "Sucre",
+    "aliases": [
+      "Bolivia",
+      "Bolivia",
+      "BOL"
+    ]
+  },
+  {
+    "code": "BQ",
+    "name": "荷属加勒比区",
+    "nameEn": "Bonaire, Saint Eustatius and Saba ",
+    "iso3": "BES",
+    "capital": "",
+    "aliases": [
+      "Caribbean Netherlands",
+      "Bonaire, Saint Eustatius and Saba ",
+      "BES"
+    ]
+  },
+  {
+    "code": "BR",
+    "name": "巴西",
+    "nameEn": "Brazil",
+    "iso3": "BRA",
+    "capital": "Brasilia",
+    "aliases": [
+      "Brazil",
+      "Brazil",
+      "BRA"
+    ]
+  },
+  {
+    "code": "BS",
+    "name": "巴哈马",
+    "nameEn": "Bahamas",
+    "iso3": "BHS",
+    "capital": "Nassau",
+    "aliases": [
+      "Bahamas",
+      "Bahamas",
+      "BHS"
+    ]
+  },
+  {
+    "code": "BT",
+    "name": "不丹",
+    "nameEn": "Bhutan",
+    "iso3": "BTN",
+    "capital": "Thimphu",
+    "aliases": [
+      "Bhutan",
+      "Bhutan",
+      "BTN"
+    ]
+  },
+  {
+    "code": "BV",
+    "name": "布韦岛",
+    "nameEn": "Bouvet Island",
+    "iso3": "BVT",
+    "capital": "",
+    "aliases": [
+      "Bouvet Island",
+      "Bouvet Island",
+      "BVT"
+    ]
+  },
+  {
+    "code": "BW",
+    "name": "博茨瓦纳",
+    "nameEn": "Botswana",
+    "iso3": "BWA",
+    "capital": "Gaborone",
+    "aliases": [
+      "Botswana",
+      "Botswana",
+      "BWA"
+    ]
+  },
+  {
+    "code": "BY",
+    "name": "白俄罗斯",
+    "nameEn": "Belarus",
+    "iso3": "BLR",
+    "capital": "Minsk",
+    "aliases": [
+      "Belarus",
+      "Belarus",
+      "BLR"
+    ]
+  },
+  {
+    "code": "BZ",
+    "name": "伯利兹",
+    "nameEn": "Belize",
+    "iso3": "BLZ",
+    "capital": "Belmopan",
+    "aliases": [
+      "Belize",
+      "Belize",
+      "BLZ"
+    ]
+  },
+  {
+    "code": "CA",
+    "name": "加拿大",
+    "nameEn": "Canada",
+    "iso3": "CAN",
+    "capital": "Ottawa",
+    "aliases": [
+      "Canada",
+      "Canada",
+      "CAN"
+    ]
+  },
+  {
+    "code": "CC",
+    "name": "科科斯（基林）群岛",
+    "nameEn": "Cocos Islands",
+    "iso3": "CCK",
+    "capital": "West Island",
+    "aliases": [
+      "Cocos (Keeling) Islands",
+      "Cocos Islands",
+      "CCK"
+    ]
+  },
+  {
+    "code": "CD",
+    "name": "刚果（金）",
+    "nameEn": "Democratic Republic of the Congo",
+    "iso3": "COD",
+    "capital": "Kinshasa",
+    "aliases": [
+      "Congo - Kinshasa",
+      "Democratic Republic of the Congo",
+      "COD"
+    ]
+  },
+  {
+    "code": "CF",
+    "name": "中非共和国",
+    "nameEn": "Central African Republic",
+    "iso3": "CAF",
+    "capital": "Bangui",
+    "aliases": [
+      "Central African Republic",
+      "Central African Republic",
+      "CAF"
+    ]
+  },
+  {
+    "code": "CG",
+    "name": "刚果（布）",
+    "nameEn": "Republic of the Congo",
+    "iso3": "COG",
+    "capital": "Brazzaville",
+    "aliases": [
+      "Congo - Brazzaville",
+      "Republic of the Congo",
+      "COG"
+    ]
+  },
+  {
+    "code": "CH",
+    "name": "瑞士",
+    "nameEn": "Switzerland",
+    "iso3": "CHE",
+    "capital": "Bern",
+    "aliases": [
+      "Switzerland",
+      "Switzerland",
+      "CHE"
+    ]
+  },
+  {
+    "code": "CI",
+    "name": "科特迪瓦",
+    "nameEn": "Ivory Coast",
+    "iso3": "CIV",
+    "capital": "Yamoussoukro",
+    "aliases": [
+      "Côte d’Ivoire",
+      "Ivory Coast",
+      "CIV"
+    ]
+  },
+  {
+    "code": "CK",
+    "name": "库克群岛",
+    "nameEn": "Cook Islands",
+    "iso3": "COK",
+    "capital": "Avarua",
+    "aliases": [
+      "Cook Islands",
+      "Cook Islands",
+      "COK"
+    ]
+  },
+  {
+    "code": "CL",
+    "name": "智利",
+    "nameEn": "Chile",
+    "iso3": "CHL",
+    "capital": "Santiago",
+    "aliases": [
+      "Chile",
+      "Chile",
+      "CHL"
+    ]
+  },
+  {
+    "code": "CM",
+    "name": "喀麦隆",
+    "nameEn": "Cameroon",
+    "iso3": "CMR",
+    "capital": "Yaounde",
+    "aliases": [
+      "Cameroon",
+      "Cameroon",
+      "CMR"
+    ]
+  },
+  {
+    "code": "CN",
+    "name": "中国",
+    "nameEn": "China",
+    "iso3": "CHN",
+    "capital": "Beijing",
+    "aliases": [
+      "China",
+      "China",
+      "CHN"
+    ]
+  },
+  {
+    "code": "CO",
+    "name": "哥伦比亚",
+    "nameEn": "Colombia",
+    "iso3": "COL",
+    "capital": "Bogota",
+    "aliases": [
+      "Colombia",
+      "Colombia",
+      "COL"
+    ]
+  },
+  {
+    "code": "CR",
+    "name": "哥斯达黎加",
+    "nameEn": "Costa Rica",
+    "iso3": "CRI",
+    "capital": "San Jose",
+    "aliases": [
+      "Costa Rica",
+      "Costa Rica",
+      "CRI"
+    ]
+  },
+  {
+    "code": "CU",
+    "name": "古巴",
+    "nameEn": "Cuba",
+    "iso3": "CUB",
+    "capital": "Havana",
+    "aliases": [
+      "Cuba",
+      "Cuba",
+      "CUB"
+    ]
+  },
+  {
+    "code": "CV",
+    "name": "佛得角",
+    "nameEn": "Cabo Verde",
+    "iso3": "CPV",
+    "capital": "Praia",
+    "aliases": [
+      "Cape Verde",
+      "Cabo Verde",
+      "CPV"
+    ]
+  },
+  {
+    "code": "CW",
+    "name": "库拉索",
+    "nameEn": "Curacao",
+    "iso3": "CUW",
+    "capital": " Willemstad",
+    "aliases": [
+      "Curaçao",
+      "Curacao",
+      "CUW"
+    ]
+  },
+  {
+    "code": "CX",
+    "name": "圣诞岛",
+    "nameEn": "Christmas Island",
+    "iso3": "CXR",
+    "capital": "Flying Fish Cove",
+    "aliases": [
+      "Christmas Island",
+      "Christmas Island",
+      "CXR"
+    ]
+  },
+  {
+    "code": "CY",
+    "name": "塞浦路斯",
+    "nameEn": "Cyprus",
+    "iso3": "CYP",
+    "capital": "Nicosia",
+    "aliases": [
+      "Cyprus",
+      "Cyprus",
+      "CYP"
+    ]
+  },
+  {
+    "code": "CZ",
+    "name": "捷克",
+    "nameEn": "Czechia",
+    "iso3": "CZE",
+    "capital": "Prague",
+    "aliases": [
+      "Czechia",
+      "Czechia",
+      "CZE"
+    ]
+  },
+  {
+    "code": "DE",
+    "name": "德国",
+    "nameEn": "Germany",
+    "iso3": "DEU",
+    "capital": "Berlin",
+    "aliases": [
+      "Germany",
+      "Germany",
+      "DEU"
+    ]
+  },
+  {
+    "code": "DJ",
+    "name": "吉布提",
+    "nameEn": "Djibouti",
+    "iso3": "DJI",
+    "capital": "Djibouti",
+    "aliases": [
+      "Djibouti",
+      "Djibouti",
+      "DJI"
+    ]
+  },
+  {
+    "code": "DK",
+    "name": "丹麦",
+    "nameEn": "Denmark",
+    "iso3": "DNK",
+    "capital": "Copenhagen",
+    "aliases": [
+      "Denmark",
+      "Denmark",
+      "DNK"
+    ]
+  },
+  {
+    "code": "DM",
+    "name": "多米尼克",
+    "nameEn": "Dominica",
+    "iso3": "DMA",
+    "capital": "Roseau",
+    "aliases": [
+      "Dominica",
+      "Dominica",
+      "DMA"
+    ]
+  },
+  {
+    "code": "DO",
+    "name": "多米尼加共和国",
+    "nameEn": "Dominican Republic",
+    "iso3": "DOM",
+    "capital": "Santo Domingo",
+    "aliases": [
+      "Dominican Republic",
+      "Dominican Republic",
+      "DOM"
+    ]
+  },
+  {
+    "code": "DZ",
+    "name": "阿尔及利亚",
+    "nameEn": "Algeria",
+    "iso3": "DZA",
+    "capital": "Algiers",
+    "aliases": [
+      "Algeria",
+      "Algeria",
+      "DZA"
+    ]
+  },
+  {
+    "code": "EC",
+    "name": "厄瓜多尔",
+    "nameEn": "Ecuador",
+    "iso3": "ECU",
+    "capital": "Quito",
+    "aliases": [
+      "Ecuador",
+      "Ecuador",
+      "ECU"
+    ]
+  },
+  {
+    "code": "EE",
+    "name": "爱沙尼亚",
+    "nameEn": "Estonia",
+    "iso3": "EST",
+    "capital": "Tallinn",
+    "aliases": [
+      "Estonia",
+      "Estonia",
+      "EST"
+    ]
+  },
+  {
+    "code": "EG",
+    "name": "埃及",
+    "nameEn": "Egypt",
+    "iso3": "EGY",
+    "capital": "Cairo",
+    "aliases": [
+      "Egypt",
+      "Egypt",
+      "EGY"
+    ]
+  },
+  {
+    "code": "EH",
+    "name": "西撒哈拉",
+    "nameEn": "Western Sahara",
+    "iso3": "ESH",
+    "capital": "El-Aaiun",
+    "aliases": [
+      "Western Sahara",
+      "Western Sahara",
+      "ESH"
+    ]
+  },
+  {
+    "code": "ER",
+    "name": "厄立特里亚",
+    "nameEn": "Eritrea",
+    "iso3": "ERI",
+    "capital": "Asmara",
+    "aliases": [
+      "Eritrea",
+      "Eritrea",
+      "ERI"
+    ]
+  },
+  {
+    "code": "ES",
+    "name": "西班牙",
+    "nameEn": "Spain",
+    "iso3": "ESP",
+    "capital": "Madrid",
+    "aliases": [
+      "Spain",
+      "Spain",
+      "ESP"
+    ]
+  },
+  {
+    "code": "ET",
+    "name": "埃塞俄比亚",
+    "nameEn": "Ethiopia",
+    "iso3": "ETH",
+    "capital": "Addis Ababa",
+    "aliases": [
+      "Ethiopia",
+      "Ethiopia",
+      "ETH"
+    ]
+  },
+  {
+    "code": "FI",
+    "name": "芬兰",
+    "nameEn": "Finland",
+    "iso3": "FIN",
+    "capital": "Helsinki",
+    "aliases": [
+      "Finland",
+      "Finland",
+      "FIN"
+    ]
+  },
+  {
+    "code": "FJ",
+    "name": "斐济",
+    "nameEn": "Fiji",
+    "iso3": "FJI",
+    "capital": "Suva",
+    "aliases": [
+      "Fiji",
+      "Fiji",
+      "FJI"
+    ]
+  },
+  {
+    "code": "FK",
+    "name": "福克兰群岛",
+    "nameEn": "Falkland Islands",
+    "iso3": "FLK",
+    "capital": "Stanley",
+    "aliases": [
+      "Falkland Islands",
+      "Falkland Islands",
+      "FLK"
+    ]
+  },
+  {
+    "code": "FM",
+    "name": "密克罗尼西亚",
+    "nameEn": "Micronesia",
+    "iso3": "FSM",
+    "capital": "Palikir",
+    "aliases": [
+      "Micronesia",
+      "Micronesia",
+      "FSM"
+    ]
+  },
+  {
+    "code": "FO",
+    "name": "法罗群岛",
+    "nameEn": "Faroe Islands",
+    "iso3": "FRO",
+    "capital": "Torshavn",
+    "aliases": [
+      "Faroe Islands",
+      "Faroe Islands",
+      "FRO"
+    ]
+  },
+  {
+    "code": "FR",
+    "name": "法国",
+    "nameEn": "France",
+    "iso3": "FRA",
+    "capital": "Paris",
+    "aliases": [
+      "France",
+      "France",
+      "FRA"
+    ]
+  },
+  {
+    "code": "GA",
+    "name": "加蓬",
+    "nameEn": "Gabon",
+    "iso3": "GAB",
+    "capital": "Libreville",
+    "aliases": [
+      "Gabon",
+      "Gabon",
+      "GAB"
+    ]
+  },
+  {
+    "code": "GB",
+    "name": "英国",
+    "nameEn": "United Kingdom",
+    "iso3": "GBR",
+    "capital": "London",
+    "aliases": [
+      "United Kingdom",
+      "United Kingdom",
+      "GBR"
+    ]
+  },
+  {
+    "code": "GD",
+    "name": "格林纳达",
+    "nameEn": "Grenada",
+    "iso3": "GRD",
+    "capital": "St. George's",
+    "aliases": [
+      "Grenada",
+      "Grenada",
+      "GRD"
+    ]
+  },
+  {
+    "code": "GE",
+    "name": "格鲁吉亚",
+    "nameEn": "Georgia",
+    "iso3": "GEO",
+    "capital": "Tbilisi",
+    "aliases": [
+      "Georgia",
+      "Georgia",
+      "GEO"
+    ]
+  },
+  {
+    "code": "GF",
+    "name": "法属圭亚那",
+    "nameEn": "French Guiana",
+    "iso3": "GUF",
+    "capital": "Cayenne",
+    "aliases": [
+      "French Guiana",
+      "French Guiana",
+      "GUF"
+    ]
+  },
+  {
+    "code": "GG",
+    "name": "根西岛",
+    "nameEn": "Guernsey",
+    "iso3": "GGY",
+    "capital": "St Peter Port",
+    "aliases": [
+      "Guernsey",
+      "Guernsey",
+      "GGY"
+    ]
+  },
+  {
+    "code": "GH",
+    "name": "加纳",
+    "nameEn": "Ghana",
+    "iso3": "GHA",
+    "capital": "Accra",
+    "aliases": [
+      "Ghana",
+      "Ghana",
+      "GHA"
+    ]
+  },
+  {
+    "code": "GI",
+    "name": "直布罗陀",
+    "nameEn": "Gibraltar",
+    "iso3": "GIB",
+    "capital": "Gibraltar",
+    "aliases": [
+      "Gibraltar",
+      "Gibraltar",
+      "GIB"
+    ]
+  },
+  {
+    "code": "GL",
+    "name": "格陵兰",
+    "nameEn": "Greenland",
+    "iso3": "GRL",
+    "capital": "Nuuk",
+    "aliases": [
+      "Greenland",
+      "Greenland",
+      "GRL"
+    ]
+  },
+  {
+    "code": "GM",
+    "name": "冈比亚",
+    "nameEn": "Gambia",
+    "iso3": "GMB",
+    "capital": "Banjul",
+    "aliases": [
+      "Gambia",
+      "Gambia",
+      "GMB"
+    ]
+  },
+  {
+    "code": "GN",
+    "name": "几内亚",
+    "nameEn": "Guinea",
+    "iso3": "GIN",
+    "capital": "Conakry",
+    "aliases": [
+      "Guinea",
+      "Guinea",
+      "GIN"
+    ]
+  },
+  {
+    "code": "GP",
+    "name": "瓜德罗普",
+    "nameEn": "Guadeloupe",
+    "iso3": "GLP",
+    "capital": "Basse-Terre",
+    "aliases": [
+      "Guadeloupe",
+      "Guadeloupe",
+      "GLP"
+    ]
+  },
+  {
+    "code": "GQ",
+    "name": "赤道几内亚",
+    "nameEn": "Equatorial Guinea",
+    "iso3": "GNQ",
+    "capital": "Ciudad de la Paz",
+    "aliases": [
+      "Equatorial Guinea",
+      "Equatorial Guinea",
+      "GNQ"
+    ]
+  },
+  {
+    "code": "GR",
+    "name": "希腊",
+    "nameEn": "Greece",
+    "iso3": "GRC",
+    "capital": "Athens",
+    "aliases": [
+      "Greece",
+      "Greece",
+      "GRC"
+    ]
+  },
+  {
+    "code": "GS",
+    "name": "南乔治亚和南桑威奇群岛",
+    "nameEn": "South Georgia and the South Sandwich Islands",
+    "iso3": "SGS",
+    "capital": "Grytviken",
+    "aliases": [
+      "South Georgia & South Sandwich Islands",
+      "South Georgia and the South Sandwich Islands",
+      "SGS"
+    ]
+  },
+  {
+    "code": "GT",
+    "name": "危地马拉",
+    "nameEn": "Guatemala",
+    "iso3": "GTM",
+    "capital": "Guatemala City",
+    "aliases": [
+      "Guatemala",
+      "Guatemala",
+      "GTM"
+    ]
+  },
+  {
+    "code": "GU",
+    "name": "关岛",
+    "nameEn": "Guam",
+    "iso3": "GUM",
+    "capital": "Hagatna",
+    "aliases": [
+      "Guam",
+      "Guam",
+      "GUM"
+    ]
+  },
+  {
+    "code": "GW",
+    "name": "几内亚比绍",
+    "nameEn": "Guinea-Bissau",
+    "iso3": "GNB",
+    "capital": "Bissau",
+    "aliases": [
+      "Guinea-Bissau",
+      "Guinea-Bissau",
+      "GNB"
+    ]
+  },
+  {
+    "code": "GY",
+    "name": "圭亚那",
+    "nameEn": "Guyana",
+    "iso3": "GUY",
+    "capital": "Georgetown",
+    "aliases": [
+      "Guyana",
+      "Guyana",
+      "GUY"
+    ]
+  },
+  {
+    "code": "HK",
+    "name": "中国香港特别行政区",
+    "nameEn": "Hong Kong",
+    "iso3": "HKG",
+    "capital": "Hong Kong",
+    "aliases": [
+      "Hong Kong SAR China",
+      "Hong Kong",
+      "HKG"
+    ]
+  },
+  {
+    "code": "HM",
+    "name": "赫德岛和麦克唐纳群岛",
+    "nameEn": "Heard Island and McDonald Islands",
+    "iso3": "HMD",
+    "capital": "",
+    "aliases": [
+      "Heard & McDonald Islands",
+      "Heard Island and McDonald Islands",
+      "HMD"
+    ]
+  },
+  {
+    "code": "HN",
+    "name": "洪都拉斯",
+    "nameEn": "Honduras",
+    "iso3": "HND",
+    "capital": "Tegucigalpa",
+    "aliases": [
+      "Honduras",
+      "Honduras",
+      "HND"
+    ]
+  },
+  {
+    "code": "HR",
+    "name": "克罗地亚",
+    "nameEn": "Croatia",
+    "iso3": "HRV",
+    "capital": "Zagreb",
+    "aliases": [
+      "Croatia",
+      "Croatia",
+      "HRV"
+    ]
+  },
+  {
+    "code": "HT",
+    "name": "海地",
+    "nameEn": "Haiti",
+    "iso3": "HTI",
+    "capital": "Port-au-Prince",
+    "aliases": [
+      "Haiti",
+      "Haiti",
+      "HTI"
+    ]
+  },
+  {
+    "code": "HU",
+    "name": "匈牙利",
+    "nameEn": "Hungary",
+    "iso3": "HUN",
+    "capital": "Budapest",
+    "aliases": [
+      "Hungary",
+      "Hungary",
+      "HUN"
+    ]
+  },
+  {
+    "code": "ID",
+    "name": "印度尼西亚",
+    "nameEn": "Indonesia",
+    "iso3": "IDN",
+    "capital": "Jakarta",
+    "aliases": [
+      "Indonesia",
+      "Indonesia",
+      "IDN"
+    ]
+  },
+  {
+    "code": "IE",
+    "name": "爱尔兰",
+    "nameEn": "Ireland",
+    "iso3": "IRL",
+    "capital": "Dublin",
+    "aliases": [
+      "Ireland",
+      "Ireland",
+      "IRL"
+    ]
+  },
+  {
+    "code": "IL",
+    "name": "以色列",
+    "nameEn": "Israel",
+    "iso3": "ISR",
+    "capital": "Jerusalem",
+    "aliases": [
+      "Israel",
+      "Israel",
+      "ISR"
+    ]
+  },
+  {
+    "code": "IM",
+    "name": "马恩岛",
+    "nameEn": "Isle of Man",
+    "iso3": "IMN",
+    "capital": "Douglas",
+    "aliases": [
+      "Isle of Man",
+      "Isle of Man",
+      "IMN"
+    ]
+  },
+  {
+    "code": "IN",
+    "name": "印度",
+    "nameEn": "India",
+    "iso3": "IND",
+    "capital": "New Delhi",
+    "aliases": [
+      "India",
+      "India",
+      "IND"
+    ]
+  },
+  {
+    "code": "IO",
+    "name": "英属印度洋领地",
+    "nameEn": "British Indian Ocean Territory",
+    "iso3": "IOT",
+    "capital": "Diego Garcia",
+    "aliases": [
+      "British Indian Ocean Territory",
+      "British Indian Ocean Territory",
+      "IOT"
+    ]
+  },
+  {
+    "code": "IQ",
+    "name": "伊拉克",
+    "nameEn": "Iraq",
+    "iso3": "IRQ",
+    "capital": "Baghdad",
+    "aliases": [
+      "Iraq",
+      "Iraq",
+      "IRQ"
+    ]
+  },
+  {
+    "code": "IR",
+    "name": "伊朗",
+    "nameEn": "Iran",
+    "iso3": "IRN",
+    "capital": "Tehran",
+    "aliases": [
+      "Iran",
+      "Iran",
+      "IRN"
+    ]
+  },
+  {
+    "code": "IS",
+    "name": "冰岛",
+    "nameEn": "Iceland",
+    "iso3": "ISL",
+    "capital": "Reykjavik",
+    "aliases": [
+      "Iceland",
+      "Iceland",
+      "ISL"
+    ]
+  },
+  {
+    "code": "IT",
+    "name": "意大利",
+    "nameEn": "Italy",
+    "iso3": "ITA",
+    "capital": "Rome",
+    "aliases": [
+      "Italy",
+      "Italy",
+      "ITA"
+    ]
+  },
+  {
+    "code": "JE",
+    "name": "泽西岛",
+    "nameEn": "Jersey",
+    "iso3": "JEY",
+    "capital": "Saint Helier",
+    "aliases": [
+      "Jersey",
+      "Jersey",
+      "JEY"
+    ]
+  },
+  {
+    "code": "JM",
+    "name": "牙买加",
+    "nameEn": "Jamaica",
+    "iso3": "JAM",
+    "capital": "Kingston",
+    "aliases": [
+      "Jamaica",
+      "Jamaica",
+      "JAM"
+    ]
+  },
+  {
+    "code": "JO",
+    "name": "约旦",
+    "nameEn": "Jordan",
+    "iso3": "JOR",
+    "capital": "Amman",
+    "aliases": [
+      "Jordan",
+      "Jordan",
+      "JOR"
+    ]
+  },
+  {
+    "code": "JP",
+    "name": "日本",
+    "nameEn": "Japan",
+    "iso3": "JPN",
+    "capital": "Tokyo",
+    "aliases": [
+      "Japan",
+      "Japan",
+      "JPN"
+    ]
+  },
+  {
+    "code": "KE",
+    "name": "肯尼亚",
+    "nameEn": "Kenya",
+    "iso3": "KEN",
+    "capital": "Nairobi",
+    "aliases": [
+      "Kenya",
+      "Kenya",
+      "KEN"
+    ]
+  },
+  {
+    "code": "KG",
+    "name": "吉尔吉斯斯坦",
+    "nameEn": "Kyrgyzstan",
+    "iso3": "KGZ",
+    "capital": "Bishkek",
+    "aliases": [
+      "Kyrgyzstan",
+      "Kyrgyzstan",
+      "KGZ"
+    ]
+  },
+  {
+    "code": "KH",
+    "name": "柬埔寨",
+    "nameEn": "Cambodia",
+    "iso3": "KHM",
+    "capital": "Phnom Penh",
+    "aliases": [
+      "Cambodia",
+      "Cambodia",
+      "KHM"
+    ]
+  },
+  {
+    "code": "KI",
+    "name": "基里巴斯",
+    "nameEn": "Kiribati",
+    "iso3": "KIR",
+    "capital": "Tarawa",
+    "aliases": [
+      "Kiribati",
+      "Kiribati",
+      "KIR"
+    ]
+  },
+  {
+    "code": "KM",
+    "name": "科摩罗",
+    "nameEn": "Comoros",
+    "iso3": "COM",
+    "capital": "Moroni",
+    "aliases": [
+      "Comoros",
+      "Comoros",
+      "COM"
+    ]
+  },
+  {
+    "code": "KN",
+    "name": "圣基茨和尼维斯",
+    "nameEn": "Saint Kitts and Nevis",
+    "iso3": "KNA",
+    "capital": "Basseterre",
+    "aliases": [
+      "St. Kitts & Nevis",
+      "Saint Kitts and Nevis",
+      "KNA"
+    ]
+  },
+  {
+    "code": "KP",
+    "name": "朝鲜",
+    "nameEn": "North Korea",
+    "iso3": "PRK",
+    "capital": "Pyongyang",
+    "aliases": [
+      "North Korea",
+      "North Korea",
+      "PRK"
+    ]
+  },
+  {
+    "code": "KR",
+    "name": "韩国",
+    "nameEn": "South Korea",
+    "iso3": "KOR",
+    "capital": "Seoul",
+    "aliases": [
+      "South Korea",
+      "South Korea",
+      "KOR"
+    ]
+  },
+  {
+    "code": "XK",
+    "name": "科索沃",
+    "nameEn": "Kosovo",
+    "iso3": "XKX",
+    "capital": "Pristina",
+    "aliases": [
+      "Kosovo",
+      "Kosovo",
+      "XKX"
+    ]
+  },
+  {
+    "code": "KW",
+    "name": "科威特",
+    "nameEn": "Kuwait",
+    "iso3": "KWT",
+    "capital": "Kuwait City",
+    "aliases": [
+      "Kuwait",
+      "Kuwait",
+      "KWT"
+    ]
+  },
+  {
+    "code": "KY",
+    "name": "开曼群岛",
+    "nameEn": "Cayman Islands",
+    "iso3": "CYM",
+    "capital": "George Town",
+    "aliases": [
+      "Cayman Islands",
+      "Cayman Islands",
+      "CYM"
+    ]
+  },
+  {
+    "code": "KZ",
+    "name": "哈萨克斯坦",
+    "nameEn": "Kazakhstan",
+    "iso3": "KAZ",
+    "capital": "Nur-Sultan",
+    "aliases": [
+      "Kazakhstan",
+      "Kazakhstan",
+      "KAZ"
+    ]
+  },
+  {
+    "code": "LA",
+    "name": "老挝",
+    "nameEn": "Laos",
+    "iso3": "LAO",
+    "capital": "Vientiane",
+    "aliases": [
+      "Laos",
+      "Laos",
+      "LAO"
+    ]
+  },
+  {
+    "code": "LB",
+    "name": "黎巴嫩",
+    "nameEn": "Lebanon",
+    "iso3": "LBN",
+    "capital": "Beirut",
+    "aliases": [
+      "Lebanon",
+      "Lebanon",
+      "LBN"
+    ]
+  },
+  {
+    "code": "LC",
+    "name": "圣卢西亚",
+    "nameEn": "Saint Lucia",
+    "iso3": "LCA",
+    "capital": "Castries",
+    "aliases": [
+      "St. Lucia",
+      "Saint Lucia",
+      "LCA"
+    ]
+  },
+  {
+    "code": "LI",
+    "name": "列支敦士登",
+    "nameEn": "Liechtenstein",
+    "iso3": "LIE",
+    "capital": "Vaduz",
+    "aliases": [
+      "Liechtenstein",
+      "Liechtenstein",
+      "LIE"
+    ]
+  },
+  {
+    "code": "LK",
+    "name": "斯里兰卡",
+    "nameEn": "Sri Lanka",
+    "iso3": "LKA",
+    "capital": "Colombo",
+    "aliases": [
+      "Sri Lanka",
+      "Sri Lanka",
+      "LKA"
+    ]
+  },
+  {
+    "code": "LR",
+    "name": "利比里亚",
+    "nameEn": "Liberia",
+    "iso3": "LBR",
+    "capital": "Monrovia",
+    "aliases": [
+      "Liberia",
+      "Liberia",
+      "LBR"
+    ]
+  },
+  {
+    "code": "LS",
+    "name": "莱索托",
+    "nameEn": "Lesotho",
+    "iso3": "LSO",
+    "capital": "Maseru",
+    "aliases": [
+      "Lesotho",
+      "Lesotho",
+      "LSO"
+    ]
+  },
+  {
+    "code": "LT",
+    "name": "立陶宛",
+    "nameEn": "Lithuania",
+    "iso3": "LTU",
+    "capital": "Vilnius",
+    "aliases": [
+      "Lithuania",
+      "Lithuania",
+      "LTU"
+    ]
+  },
+  {
+    "code": "LU",
+    "name": "卢森堡",
+    "nameEn": "Luxembourg",
+    "iso3": "LUX",
+    "capital": "Luxembourg",
+    "aliases": [
+      "Luxembourg",
+      "Luxembourg",
+      "LUX"
+    ]
+  },
+  {
+    "code": "LV",
+    "name": "拉脱维亚",
+    "nameEn": "Latvia",
+    "iso3": "LVA",
+    "capital": "Riga",
+    "aliases": [
+      "Latvia",
+      "Latvia",
+      "LVA"
+    ]
+  },
+  {
+    "code": "LY",
+    "name": "利比亚",
+    "nameEn": "Libya",
+    "iso3": "LBY",
+    "capital": "Tripoli",
+    "aliases": [
+      "Libya",
+      "Libya",
+      "LBY"
+    ]
+  },
+  {
+    "code": "MA",
+    "name": "摩洛哥",
+    "nameEn": "Morocco",
+    "iso3": "MAR",
+    "capital": "Rabat",
+    "aliases": [
+      "Morocco",
+      "Morocco",
+      "MAR"
+    ]
+  },
+  {
+    "code": "MC",
+    "name": "摩纳哥",
+    "nameEn": "Monaco",
+    "iso3": "MCO",
+    "capital": "Monaco",
+    "aliases": [
+      "Monaco",
+      "Monaco",
+      "MCO"
+    ]
+  },
+  {
+    "code": "MD",
+    "name": "摩尔多瓦",
+    "nameEn": "Moldova",
+    "iso3": "MDA",
+    "capital": "Chisinau",
+    "aliases": [
+      "Moldova",
+      "Moldova",
+      "MDA"
+    ]
+  },
+  {
+    "code": "ME",
+    "name": "黑山",
+    "nameEn": "Montenegro",
+    "iso3": "MNE",
+    "capital": "Podgorica",
+    "aliases": [
+      "Montenegro",
+      "Montenegro",
+      "MNE"
+    ]
+  },
+  {
+    "code": "MF",
+    "name": "法属圣马丁",
+    "nameEn": "Saint Martin",
+    "iso3": "MAF",
+    "capital": "Marigot",
+    "aliases": [
+      "St. Martin",
+      "Saint Martin",
+      "MAF"
+    ]
+  },
+  {
+    "code": "MG",
+    "name": "马达加斯加",
+    "nameEn": "Madagascar",
+    "iso3": "MDG",
+    "capital": "Antananarivo",
+    "aliases": [
+      "Madagascar",
+      "Madagascar",
+      "MDG"
+    ]
+  },
+  {
+    "code": "MH",
+    "name": "马绍尔群岛",
+    "nameEn": "Marshall Islands",
+    "iso3": "MHL",
+    "capital": "Majuro",
+    "aliases": [
+      "Marshall Islands",
+      "Marshall Islands",
+      "MHL"
+    ]
+  },
+  {
+    "code": "MK",
+    "name": "北马其顿",
+    "nameEn": "North Macedonia",
+    "iso3": "MKD",
+    "capital": "Skopje",
+    "aliases": [
+      "North Macedonia",
+      "North Macedonia",
+      "MKD"
+    ]
+  },
+  {
+    "code": "ML",
+    "name": "马里",
+    "nameEn": "Mali",
+    "iso3": "MLI",
+    "capital": "Bamako",
+    "aliases": [
+      "Mali",
+      "Mali",
+      "MLI"
+    ]
+  },
+  {
+    "code": "MM",
+    "name": "缅甸",
+    "nameEn": "Myanmar",
+    "iso3": "MMR",
+    "capital": "Nay Pyi Taw",
+    "aliases": [
+      "Myanmar (Burma)",
+      "Myanmar",
+      "MMR"
+    ]
+  },
+  {
+    "code": "MN",
+    "name": "蒙古",
+    "nameEn": "Mongolia",
+    "iso3": "MNG",
+    "capital": "Ulaanbaatar",
+    "aliases": [
+      "Mongolia",
+      "Mongolia",
+      "MNG"
+    ]
+  },
+  {
+    "code": "MO",
+    "name": "中国澳门特别行政区",
+    "nameEn": "Macao",
+    "iso3": "MAC",
+    "capital": "Macao",
+    "aliases": [
+      "Macao SAR China",
+      "Macao",
+      "MAC"
+    ]
+  },
+  {
+    "code": "MP",
+    "name": "北马里亚纳群岛",
+    "nameEn": "Northern Mariana Islands",
+    "iso3": "MNP",
+    "capital": "Saipan",
+    "aliases": [
+      "Northern Mariana Islands",
+      "Northern Mariana Islands",
+      "MNP"
+    ]
+  },
+  {
+    "code": "MQ",
+    "name": "马提尼克",
+    "nameEn": "Martinique",
+    "iso3": "MTQ",
+    "capital": "Fort-de-France",
+    "aliases": [
+      "Martinique",
+      "Martinique",
+      "MTQ"
+    ]
+  },
+  {
+    "code": "MR",
+    "name": "毛里塔尼亚",
+    "nameEn": "Mauritania",
+    "iso3": "MRT",
+    "capital": "Nouakchott",
+    "aliases": [
+      "Mauritania",
+      "Mauritania",
+      "MRT"
+    ]
+  },
+  {
+    "code": "MS",
+    "name": "蒙特塞拉特",
+    "nameEn": "Montserrat",
+    "iso3": "MSR",
+    "capital": "Plymouth",
+    "aliases": [
+      "Montserrat",
+      "Montserrat",
+      "MSR"
+    ]
+  },
+  {
+    "code": "MT",
+    "name": "马耳他",
+    "nameEn": "Malta",
+    "iso3": "MLT",
+    "capital": "Valletta",
+    "aliases": [
+      "Malta",
+      "Malta",
+      "MLT"
+    ]
+  },
+  {
+    "code": "MU",
+    "name": "毛里求斯",
+    "nameEn": "Mauritius",
+    "iso3": "MUS",
+    "capital": "Port Louis",
+    "aliases": [
+      "Mauritius",
+      "Mauritius",
+      "MUS"
+    ]
+  },
+  {
+    "code": "MV",
+    "name": "马尔代夫",
+    "nameEn": "Maldives",
+    "iso3": "MDV",
+    "capital": "Male",
+    "aliases": [
+      "Maldives",
+      "Maldives",
+      "MDV"
+    ]
+  },
+  {
+    "code": "MW",
+    "name": "马拉维",
+    "nameEn": "Malawi",
+    "iso3": "MWI",
+    "capital": "Lilongwe",
+    "aliases": [
+      "Malawi",
+      "Malawi",
+      "MWI"
+    ]
+  },
+  {
+    "code": "MX",
+    "name": "墨西哥",
+    "nameEn": "Mexico",
+    "iso3": "MEX",
+    "capital": "Mexico City",
+    "aliases": [
+      "Mexico",
+      "Mexico",
+      "MEX"
+    ]
+  },
+  {
+    "code": "MY",
+    "name": "马来西亚",
+    "nameEn": "Malaysia",
+    "iso3": "MYS",
+    "capital": "Kuala Lumpur",
+    "aliases": [
+      "Malaysia",
+      "Malaysia",
+      "MYS"
+    ]
+  },
+  {
+    "code": "MZ",
+    "name": "莫桑比克",
+    "nameEn": "Mozambique",
+    "iso3": "MOZ",
+    "capital": "Maputo",
+    "aliases": [
+      "Mozambique",
+      "Mozambique",
+      "MOZ"
+    ]
+  },
+  {
+    "code": "NA",
+    "name": "纳米比亚",
+    "nameEn": "Namibia",
+    "iso3": "NAM",
+    "capital": "Windhoek",
+    "aliases": [
+      "Namibia",
+      "Namibia",
+      "NAM"
+    ]
+  },
+  {
+    "code": "NC",
+    "name": "新喀里多尼亚",
+    "nameEn": "New Caledonia",
+    "iso3": "NCL",
+    "capital": "Noumea",
+    "aliases": [
+      "New Caledonia",
+      "New Caledonia",
+      "NCL"
+    ]
+  },
+  {
+    "code": "NE",
+    "name": "尼日尔",
+    "nameEn": "Niger",
+    "iso3": "NER",
+    "capital": "Niamey",
+    "aliases": [
+      "Niger",
+      "Niger",
+      "NER"
+    ]
+  },
+  {
+    "code": "NF",
+    "name": "诺福克岛",
+    "nameEn": "Norfolk Island",
+    "iso3": "NFK",
+    "capital": "Kingston",
+    "aliases": [
+      "Norfolk Island",
+      "Norfolk Island",
+      "NFK"
+    ]
+  },
+  {
+    "code": "NG",
+    "name": "尼日利亚",
+    "nameEn": "Nigeria",
+    "iso3": "NGA",
+    "capital": "Abuja",
+    "aliases": [
+      "Nigeria",
+      "Nigeria",
+      "NGA"
+    ]
+  },
+  {
+    "code": "NI",
+    "name": "尼加拉瓜",
+    "nameEn": "Nicaragua",
+    "iso3": "NIC",
+    "capital": "Managua",
+    "aliases": [
+      "Nicaragua",
+      "Nicaragua",
+      "NIC"
+    ]
+  },
+  {
+    "code": "NL",
+    "name": "荷兰",
+    "nameEn": "The Netherlands",
+    "iso3": "NLD",
+    "capital": "Amsterdam",
+    "aliases": [
+      "Netherlands",
+      "The Netherlands",
+      "NLD"
+    ]
+  },
+  {
+    "code": "NO",
+    "name": "挪威",
+    "nameEn": "Norway",
+    "iso3": "NOR",
+    "capital": "Oslo",
+    "aliases": [
+      "Norway",
+      "Norway",
+      "NOR"
+    ]
+  },
+  {
+    "code": "NP",
+    "name": "尼泊尔",
+    "nameEn": "Nepal",
+    "iso3": "NPL",
+    "capital": "Kathmandu",
+    "aliases": [
+      "Nepal",
+      "Nepal",
+      "NPL"
+    ]
+  },
+  {
+    "code": "NR",
+    "name": "瑙鲁",
+    "nameEn": "Nauru",
+    "iso3": "NRU",
+    "capital": "Yaren",
+    "aliases": [
+      "Nauru",
+      "Nauru",
+      "NRU"
+    ]
+  },
+  {
+    "code": "NU",
+    "name": "纽埃",
+    "nameEn": "Niue",
+    "iso3": "NIU",
+    "capital": "Alofi",
+    "aliases": [
+      "Niue",
+      "Niue",
+      "NIU"
+    ]
+  },
+  {
+    "code": "NZ",
+    "name": "新西兰",
+    "nameEn": "New Zealand",
+    "iso3": "NZL",
+    "capital": "Wellington",
+    "aliases": [
+      "New Zealand",
+      "New Zealand",
+      "NZL"
+    ]
+  },
+  {
+    "code": "OM",
+    "name": "阿曼",
+    "nameEn": "Oman",
+    "iso3": "OMN",
+    "capital": "Muscat",
+    "aliases": [
+      "Oman",
+      "Oman",
+      "OMN"
+    ]
+  },
+  {
+    "code": "PA",
+    "name": "巴拿马",
+    "nameEn": "Panama",
+    "iso3": "PAN",
+    "capital": "Panama City",
+    "aliases": [
+      "Panama",
+      "Panama",
+      "PAN"
+    ]
+  },
+  {
+    "code": "PE",
+    "name": "秘鲁",
+    "nameEn": "Peru",
+    "iso3": "PER",
+    "capital": "Lima",
+    "aliases": [
+      "Peru",
+      "Peru",
+      "PER"
+    ]
+  },
+  {
+    "code": "PF",
+    "name": "法属波利尼西亚",
+    "nameEn": "French Polynesia",
+    "iso3": "PYF",
+    "capital": "Papeete",
+    "aliases": [
+      "French Polynesia",
+      "French Polynesia",
+      "PYF"
+    ]
+  },
+  {
+    "code": "PG",
+    "name": "巴布亚新几内亚",
+    "nameEn": "Papua New Guinea",
+    "iso3": "PNG",
+    "capital": "Port Moresby",
+    "aliases": [
+      "Papua New Guinea",
+      "Papua New Guinea",
+      "PNG"
+    ]
+  },
+  {
+    "code": "PH",
+    "name": "菲律宾",
+    "nameEn": "Philippines",
+    "iso3": "PHL",
+    "capital": "Manila",
+    "aliases": [
+      "Philippines",
+      "Philippines",
+      "PHL"
+    ]
+  },
+  {
+    "code": "PK",
+    "name": "巴基斯坦",
+    "nameEn": "Pakistan",
+    "iso3": "PAK",
+    "capital": "Islamabad",
+    "aliases": [
+      "Pakistan",
+      "Pakistan",
+      "PAK"
+    ]
+  },
+  {
+    "code": "PL",
+    "name": "波兰",
+    "nameEn": "Poland",
+    "iso3": "POL",
+    "capital": "Warsaw",
+    "aliases": [
+      "Poland",
+      "Poland",
+      "POL"
+    ]
+  },
+  {
+    "code": "PM",
+    "name": "圣皮埃尔和密克隆群岛",
+    "nameEn": "Saint Pierre and Miquelon",
+    "iso3": "SPM",
+    "capital": "Saint-Pierre",
+    "aliases": [
+      "St. Pierre & Miquelon",
+      "Saint Pierre and Miquelon",
+      "SPM"
+    ]
+  },
+  {
+    "code": "PN",
+    "name": "皮特凯恩群岛",
+    "nameEn": "Pitcairn",
+    "iso3": "PCN",
+    "capital": "Adamstown",
+    "aliases": [
+      "Pitcairn Islands",
+      "Pitcairn",
+      "PCN"
+    ]
+  },
+  {
+    "code": "PR",
+    "name": "波多黎各",
+    "nameEn": "Puerto Rico",
+    "iso3": "PRI",
+    "capital": "San Juan",
+    "aliases": [
+      "Puerto Rico",
+      "Puerto Rico",
+      "PRI"
+    ]
+  },
+  {
+    "code": "PS",
+    "name": "巴勒斯坦领土",
+    "nameEn": "Palestinian Territory",
+    "iso3": "PSE",
+    "capital": "East Jerusalem",
+    "aliases": [
+      "Palestinian Territories",
+      "Palestinian Territory",
+      "PSE"
+    ]
+  },
+  {
+    "code": "PT",
+    "name": "葡萄牙",
+    "nameEn": "Portugal",
+    "iso3": "PRT",
+    "capital": "Lisbon",
+    "aliases": [
+      "Portugal",
+      "Portugal",
+      "PRT"
+    ]
+  },
+  {
+    "code": "PW",
+    "name": "帕劳",
+    "nameEn": "Palau",
+    "iso3": "PLW",
+    "capital": "Melekeok",
+    "aliases": [
+      "Palau",
+      "Palau",
+      "PLW"
+    ]
+  },
+  {
+    "code": "PY",
+    "name": "巴拉圭",
+    "nameEn": "Paraguay",
+    "iso3": "PRY",
+    "capital": "Asuncion",
+    "aliases": [
+      "Paraguay",
+      "Paraguay",
+      "PRY"
+    ]
+  },
+  {
+    "code": "QA",
+    "name": "卡塔尔",
+    "nameEn": "Qatar",
+    "iso3": "QAT",
+    "capital": "Doha",
+    "aliases": [
+      "Qatar",
+      "Qatar",
+      "QAT"
+    ]
+  },
+  {
+    "code": "RE",
+    "name": "留尼汪",
+    "nameEn": "Reunion",
+    "iso3": "REU",
+    "capital": "Saint-Denis",
+    "aliases": [
+      "Réunion",
+      "Reunion",
+      "REU"
+    ]
+  },
+  {
+    "code": "RO",
+    "name": "罗马尼亚",
+    "nameEn": "Romania",
+    "iso3": "ROU",
+    "capital": "Bucharest",
+    "aliases": [
+      "Romania",
+      "Romania",
+      "ROU"
+    ]
+  },
+  {
+    "code": "RS",
+    "name": "塞尔维亚",
+    "nameEn": "Serbia",
+    "iso3": "SRB",
+    "capital": "Belgrade",
+    "aliases": [
+      "Serbia",
+      "Serbia",
+      "SRB"
+    ]
+  },
+  {
+    "code": "RU",
+    "name": "俄罗斯",
+    "nameEn": "Russia",
+    "iso3": "RUS",
+    "capital": "Moscow",
+    "aliases": [
+      "Russia",
+      "Russia",
+      "RUS"
+    ]
+  },
+  {
+    "code": "RW",
+    "name": "卢旺达",
+    "nameEn": "Rwanda",
+    "iso3": "RWA",
+    "capital": "Kigali",
+    "aliases": [
+      "Rwanda",
+      "Rwanda",
+      "RWA"
+    ]
+  },
+  {
+    "code": "SA",
+    "name": "沙特阿拉伯",
+    "nameEn": "Saudi Arabia",
+    "iso3": "SAU",
+    "capital": "Riyadh",
+    "aliases": [
+      "Saudi Arabia",
+      "Saudi Arabia",
+      "SAU"
+    ]
+  },
+  {
+    "code": "SB",
+    "name": "所罗门群岛",
+    "nameEn": "Solomon Islands",
+    "iso3": "SLB",
+    "capital": "Honiara",
+    "aliases": [
+      "Solomon Islands",
+      "Solomon Islands",
+      "SLB"
+    ]
+  },
+  {
+    "code": "SC",
+    "name": "塞舌尔",
+    "nameEn": "Seychelles",
+    "iso3": "SYC",
+    "capital": "Victoria",
+    "aliases": [
+      "Seychelles",
+      "Seychelles",
+      "SYC"
+    ]
+  },
+  {
+    "code": "SD",
+    "name": "苏丹",
+    "nameEn": "Sudan",
+    "iso3": "SDN",
+    "capital": "Khartoum",
+    "aliases": [
+      "Sudan",
+      "Sudan",
+      "SDN"
+    ]
+  },
+  {
+    "code": "SS",
+    "name": "南苏丹",
+    "nameEn": "South Sudan",
+    "iso3": "SSD",
+    "capital": "Juba",
+    "aliases": [
+      "South Sudan",
+      "South Sudan",
+      "SSD"
+    ]
+  },
+  {
+    "code": "SE",
+    "name": "瑞典",
+    "nameEn": "Sweden",
+    "iso3": "SWE",
+    "capital": "Stockholm",
+    "aliases": [
+      "Sweden",
+      "Sweden",
+      "SWE"
+    ]
+  },
+  {
+    "code": "SG",
+    "name": "新加坡",
+    "nameEn": "Singapore",
+    "iso3": "SGP",
+    "capital": "Singapore",
+    "aliases": [
+      "Singapore",
+      "Singapore",
+      "SGP"
+    ]
+  },
+  {
+    "code": "SH",
+    "name": "圣赫勒拿",
+    "nameEn": "Saint Helena",
+    "iso3": "SHN",
+    "capital": "Jamestown",
+    "aliases": [
+      "St. Helena",
+      "Saint Helena",
+      "SHN"
+    ]
+  },
+  {
+    "code": "SI",
+    "name": "斯洛文尼亚",
+    "nameEn": "Slovenia",
+    "iso3": "SVN",
+    "capital": "Ljubljana",
+    "aliases": [
+      "Slovenia",
+      "Slovenia",
+      "SVN"
+    ]
+  },
+  {
+    "code": "SJ",
+    "name": "斯瓦尔巴和扬马延",
+    "nameEn": "Svalbard and Jan Mayen",
+    "iso3": "SJM",
+    "capital": "Longyearbyen",
+    "aliases": [
+      "Svalbard & Jan Mayen",
+      "Svalbard and Jan Mayen",
+      "SJM"
+    ]
+  },
+  {
+    "code": "SK",
+    "name": "斯洛伐克",
+    "nameEn": "Slovakia",
+    "iso3": "SVK",
+    "capital": "Bratislava",
+    "aliases": [
+      "Slovakia",
+      "Slovakia",
+      "SVK"
+    ]
+  },
+  {
+    "code": "SL",
+    "name": "塞拉利昂",
+    "nameEn": "Sierra Leone",
+    "iso3": "SLE",
+    "capital": "Freetown",
+    "aliases": [
+      "Sierra Leone",
+      "Sierra Leone",
+      "SLE"
+    ]
+  },
+  {
+    "code": "SM",
+    "name": "圣马力诺",
+    "nameEn": "San Marino",
+    "iso3": "SMR",
+    "capital": "San Marino",
+    "aliases": [
+      "San Marino",
+      "San Marino",
+      "SMR"
+    ]
+  },
+  {
+    "code": "SN",
+    "name": "塞内加尔",
+    "nameEn": "Senegal",
+    "iso3": "SEN",
+    "capital": "Dakar",
+    "aliases": [
+      "Senegal",
+      "Senegal",
+      "SEN"
+    ]
+  },
+  {
+    "code": "SO",
+    "name": "索马里",
+    "nameEn": "Somalia",
+    "iso3": "SOM",
+    "capital": "Mogadishu",
+    "aliases": [
+      "Somalia",
+      "Somalia",
+      "SOM"
+    ]
+  },
+  {
+    "code": "SR",
+    "name": "苏里南",
+    "nameEn": "Suriname",
+    "iso3": "SUR",
+    "capital": "Paramaribo",
+    "aliases": [
+      "Suriname",
+      "Suriname",
+      "SUR"
+    ]
+  },
+  {
+    "code": "ST",
+    "name": "圣多美和普林西比",
+    "nameEn": "Sao Tome and Principe",
+    "iso3": "STP",
+    "capital": "Sao Tome",
+    "aliases": [
+      "São Tomé & Príncipe",
+      "Sao Tome and Principe",
+      "STP"
+    ]
+  },
+  {
+    "code": "SV",
+    "name": "萨尔瓦多",
+    "nameEn": "El Salvador",
+    "iso3": "SLV",
+    "capital": "San Salvador",
+    "aliases": [
+      "El Salvador",
+      "El Salvador",
+      "SLV"
+    ]
+  },
+  {
+    "code": "SX",
+    "name": "荷属圣马丁",
+    "nameEn": "Sint Maarten",
+    "iso3": "SXM",
+    "capital": "Philipsburg",
+    "aliases": [
+      "Sint Maarten",
+      "Sint Maarten",
+      "SXM"
+    ]
+  },
+  {
+    "code": "SY",
+    "name": "叙利亚",
+    "nameEn": "Syria",
+    "iso3": "SYR",
+    "capital": "Damascus",
+    "aliases": [
+      "Syria",
+      "Syria",
+      "SYR"
+    ]
+  },
+  {
+    "code": "SZ",
+    "name": "斯威士兰",
+    "nameEn": "Eswatini",
+    "iso3": "SWZ",
+    "capital": "Mbabane",
+    "aliases": [
+      "Eswatini",
+      "Eswatini",
+      "SWZ"
+    ]
+  },
+  {
+    "code": "TC",
+    "name": "特克斯和凯科斯群岛",
+    "nameEn": "Turks and Caicos Islands",
+    "iso3": "TCA",
+    "capital": "Cockburn Town",
+    "aliases": [
+      "Turks & Caicos Islands",
+      "Turks and Caicos Islands",
+      "TCA"
+    ]
+  },
+  {
+    "code": "TD",
+    "name": "乍得",
+    "nameEn": "Chad",
+    "iso3": "TCD",
+    "capital": "N'Djamena",
+    "aliases": [
+      "Chad",
+      "Chad",
+      "TCD"
+    ]
+  },
+  {
+    "code": "TF",
+    "name": "法属南部领地",
+    "nameEn": "French Southern Territories",
+    "iso3": "ATF",
+    "capital": "Port-aux-Francais",
+    "aliases": [
+      "French Southern Territories",
+      "French Southern Territories",
+      "ATF"
+    ]
+  },
+  {
+    "code": "TG",
+    "name": "多哥",
+    "nameEn": "Togo",
+    "iso3": "TGO",
+    "capital": "Lome",
+    "aliases": [
+      "Togo",
+      "Togo",
+      "TGO"
+    ]
+  },
+  {
+    "code": "TH",
+    "name": "泰国",
+    "nameEn": "Thailand",
+    "iso3": "THA",
+    "capital": "Bangkok",
+    "aliases": [
+      "Thailand",
+      "Thailand",
+      "THA"
+    ]
+  },
+  {
+    "code": "TJ",
+    "name": "塔吉克斯坦",
+    "nameEn": "Tajikistan",
+    "iso3": "TJK",
+    "capital": "Dushanbe",
+    "aliases": [
+      "Tajikistan",
+      "Tajikistan",
+      "TJK"
+    ]
+  },
+  {
+    "code": "TK",
+    "name": "托克劳",
+    "nameEn": "Tokelau",
+    "iso3": "TKL",
+    "capital": "",
+    "aliases": [
+      "Tokelau",
+      "Tokelau",
+      "TKL"
+    ]
+  },
+  {
+    "code": "TL",
+    "name": "东帝汶",
+    "nameEn": "Timor Leste",
+    "iso3": "TLS",
+    "capital": "Dili",
+    "aliases": [
+      "Timor-Leste",
+      "Timor Leste",
+      "TLS"
+    ]
+  },
+  {
+    "code": "TM",
+    "name": "土库曼斯坦",
+    "nameEn": "Turkmenistan",
+    "iso3": "TKM",
+    "capital": "Ashgabat",
+    "aliases": [
+      "Turkmenistan",
+      "Turkmenistan",
+      "TKM"
+    ]
+  },
+  {
+    "code": "TN",
+    "name": "突尼斯",
+    "nameEn": "Tunisia",
+    "iso3": "TUN",
+    "capital": "Tunis",
+    "aliases": [
+      "Tunisia",
+      "Tunisia",
+      "TUN"
+    ]
+  },
+  {
+    "code": "TO",
+    "name": "汤加",
+    "nameEn": "Tonga",
+    "iso3": "TON",
+    "capital": "Nuku'alofa",
+    "aliases": [
+      "Tonga",
+      "Tonga",
+      "TON"
+    ]
+  },
+  {
+    "code": "TR",
+    "name": "土耳其",
+    "nameEn": "Turkey",
+    "iso3": "TUR",
+    "capital": "Ankara",
+    "aliases": [
+      "Türkiye",
+      "Turkey",
+      "TUR"
+    ]
+  },
+  {
+    "code": "TT",
+    "name": "特立尼达和多巴哥",
+    "nameEn": "Trinidad and Tobago",
+    "iso3": "TTO",
+    "capital": "Port of Spain",
+    "aliases": [
+      "Trinidad & Tobago",
+      "Trinidad and Tobago",
+      "TTO"
+    ]
+  },
+  {
+    "code": "TV",
+    "name": "图瓦卢",
+    "nameEn": "Tuvalu",
+    "iso3": "TUV",
+    "capital": "Funafuti",
+    "aliases": [
+      "Tuvalu",
+      "Tuvalu",
+      "TUV"
+    ]
+  },
+  {
+    "code": "TW",
+    "name": "台湾",
+    "nameEn": "Taiwan",
+    "iso3": "TWN",
+    "capital": "Taipei",
+    "aliases": [
+      "Taiwan",
+      "Taiwan",
+      "TWN"
+    ]
+  },
+  {
+    "code": "TZ",
+    "name": "坦桑尼亚",
+    "nameEn": "Tanzania",
+    "iso3": "TZA",
+    "capital": "Dodoma",
+    "aliases": [
+      "Tanzania",
+      "Tanzania",
+      "TZA"
+    ]
+  },
+  {
+    "code": "UA",
+    "name": "乌克兰",
+    "nameEn": "Ukraine",
+    "iso3": "UKR",
+    "capital": "Kyiv",
+    "aliases": [
+      "Ukraine",
+      "Ukraine",
+      "UKR"
+    ]
+  },
+  {
+    "code": "UG",
+    "name": "乌干达",
+    "nameEn": "Uganda",
+    "iso3": "UGA",
+    "capital": "Kampala",
+    "aliases": [
+      "Uganda",
+      "Uganda",
+      "UGA"
+    ]
+  },
+  {
+    "code": "UM",
+    "name": "美国本土外小岛屿",
+    "nameEn": "United States Minor Outlying Islands",
+    "iso3": "UMI",
+    "capital": "",
+    "aliases": [
+      "U.S. Outlying Islands",
+      "United States Minor Outlying Islands",
+      "UMI"
+    ]
+  },
+  {
+    "code": "US",
+    "name": "美国",
+    "nameEn": "United States",
+    "iso3": "USA",
+    "capital": "Washington",
+    "aliases": [
+      "United States",
+      "United States",
+      "USA"
+    ]
+  },
+  {
+    "code": "UY",
+    "name": "乌拉圭",
+    "nameEn": "Uruguay",
+    "iso3": "URY",
+    "capital": "Montevideo",
+    "aliases": [
+      "Uruguay",
+      "Uruguay",
+      "URY"
+    ]
+  },
+  {
+    "code": "UZ",
+    "name": "乌兹别克斯坦",
+    "nameEn": "Uzbekistan",
+    "iso3": "UZB",
+    "capital": "Tashkent",
+    "aliases": [
+      "Uzbekistan",
+      "Uzbekistan",
+      "UZB"
+    ]
+  },
+  {
+    "code": "VA",
+    "name": "梵蒂冈",
+    "nameEn": "Vatican",
+    "iso3": "VAT",
+    "capital": "Vatican City",
+    "aliases": [
+      "Vatican City",
+      "Vatican",
+      "VAT"
+    ]
+  },
+  {
+    "code": "VC",
+    "name": "圣文森特和格林纳丁斯",
+    "nameEn": "Saint Vincent and the Grenadines",
+    "iso3": "VCT",
+    "capital": "Kingstown",
+    "aliases": [
+      "St. Vincent & Grenadines",
+      "Saint Vincent and the Grenadines",
+      "VCT"
+    ]
+  },
+  {
+    "code": "VE",
+    "name": "委内瑞拉",
+    "nameEn": "Venezuela",
+    "iso3": "VEN",
+    "capital": "Caracas",
+    "aliases": [
+      "Venezuela",
+      "Venezuela",
+      "VEN"
+    ]
+  },
+  {
+    "code": "VG",
+    "name": "英属维尔京群岛",
+    "nameEn": "British Virgin Islands",
+    "iso3": "VGB",
+    "capital": "Road Town",
+    "aliases": [
+      "British Virgin Islands",
+      "British Virgin Islands",
+      "VGB"
+    ]
+  },
+  {
+    "code": "VI",
+    "name": "美属维尔京群岛",
+    "nameEn": "U.S. Virgin Islands",
+    "iso3": "VIR",
+    "capital": "Charlotte Amalie",
+    "aliases": [
+      "U.S. Virgin Islands",
+      "U.S. Virgin Islands",
+      "VIR"
+    ]
+  },
+  {
+    "code": "VN",
+    "name": "越南",
+    "nameEn": "Vietnam",
+    "iso3": "VNM",
+    "capital": "Hanoi",
+    "aliases": [
+      "Vietnam",
+      "Vietnam",
+      "VNM"
+    ]
+  },
+  {
+    "code": "VU",
+    "name": "瓦努阿图",
+    "nameEn": "Vanuatu",
+    "iso3": "VUT",
+    "capital": "Port Vila",
+    "aliases": [
+      "Vanuatu",
+      "Vanuatu",
+      "VUT"
+    ]
+  },
+  {
+    "code": "WF",
+    "name": "瓦利斯和富图纳",
+    "nameEn": "Wallis and Futuna",
+    "iso3": "WLF",
+    "capital": "Mata Utu",
+    "aliases": [
+      "Wallis & Futuna",
+      "Wallis and Futuna",
+      "WLF"
+    ]
+  },
+  {
+    "code": "WS",
+    "name": "萨摩亚",
+    "nameEn": "Samoa",
+    "iso3": "WSM",
+    "capital": "Apia",
+    "aliases": [
+      "Samoa",
+      "Samoa",
+      "WSM"
+    ]
+  },
+  {
+    "code": "YE",
+    "name": "也门",
+    "nameEn": "Yemen",
+    "iso3": "YEM",
+    "capital": "Sanaa",
+    "aliases": [
+      "Yemen",
+      "Yemen",
+      "YEM"
+    ]
+  },
+  {
+    "code": "YT",
+    "name": "马约特",
+    "nameEn": "Mayotte",
+    "iso3": "MYT",
+    "capital": "Mamoudzou",
+    "aliases": [
+      "Mayotte",
+      "Mayotte",
+      "MYT"
+    ]
+  },
+  {
+    "code": "ZA",
+    "name": "南非",
+    "nameEn": "South Africa",
+    "iso3": "ZAF",
+    "capital": "Pretoria",
+    "aliases": [
+      "South Africa",
+      "South Africa",
+      "ZAF"
+    ]
+  },
+  {
+    "code": "ZM",
+    "name": "赞比亚",
+    "nameEn": "Zambia",
+    "iso3": "ZMB",
+    "capital": "Lusaka",
+    "aliases": [
+      "Zambia",
+      "Zambia",
+      "ZMB"
+    ]
+  },
+  {
+    "code": "ZW",
+    "name": "津巴布韦",
+    "nameEn": "Zimbabwe",
+    "iso3": "ZWE",
+    "capital": "Harare",
+    "aliases": [
+      "Zimbabwe",
+      "Zimbabwe",
+      "ZWE"
+    ]
+  },
+  {
+    "code": "CS",
+    "name": "塞尔维亚",
+    "nameEn": "Serbia and Montenegro",
+    "iso3": "SCG",
+    "capital": "Belgrade",
+    "aliases": [
+      "Serbia",
+      "Serbia and Montenegro",
+      "SCG"
+    ]
+  },
+  {
+    "code": "AN",
+    "name": "库拉索",
+    "nameEn": "Netherlands Antilles",
+    "iso3": "ANT",
+    "capital": "Willemstad",
+    "aliases": [
+      "Curaçao",
+      "Netherlands Antilles",
+      "ANT"
+    ]
+  }
+]

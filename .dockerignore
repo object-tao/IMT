@@ -9,3 +9,6 @@ test-results
 playwright-report
 .local
 work
+assets/geography/*.gz
+assets/geography/*.next*
+assets/geography/build-manifest.json

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { cargoFlags, flagNames, modeNames, unitNames, modes, units, type Catalog, type Kind } from '../shared/model';
 import { Field, Busy } from './components';
+import { CountrySelect, CitySelect } from './LocationFields';
+import { countryCode } from '../shared/geography';
 export const kindNames: Record<Kind, string> = { suppliers: '供应商', nodes: '运输节点', lanes: '分段线路', rates: '运价', fx: '汇率' };
 const serviceNames = ['出口报关','进口清关','装卸','仓储','保险'];
 export function blankResource(kind: Kind, catalog: Catalog): any {
@@ -9,14 +11,14 @@ export function blankResource(kind: Kind, catalog: Catalog): any {
   const validity = { validFrom: new Date().toISOString().slice(0,10), validTo: `${new Date().getFullYear() + 1}-12-31` };
   switch (kind) {
     case 'suppliers': return { ...base, name: '', contact: '', notes: '' };
-    case 'nodes': return { ...base, name: '', city: '', country: '中国', type: 'city', timeZone: 'Asia/Shanghai' };
+    case 'nodes': return { ...base, name: '', city: '', country: 'CN', type: 'city', timeZone: 'Asia/Shanghai' };
     case 'lanes': return { ...base, ...validity, name: '', supplierId: catalog.suppliers[0]?.id ?? '', from: catalog.nodes[0]?.id ?? '', to: catalog.nodes[1]?.id ?? '', mode: 'road', transitHours: 24, handlingHours: 0, onDemand: true, capabilities: Object.fromEntries(cargoFlags.map(f => [f,'unknown'])), hazardousClasses: [], unNumbers: [], containerTypes: [], services: serviceNames.map(name => ({ name, status: 'unknown' })), notes: '' };
     case 'rates': return { ...base, ...validity, name: '', laneId: catalog.lanes[0]?.id ?? '', currency: 'CNY', unit: 'kg', price: 0, minimum: 0, rounding: 1, volumetricDivisor: 6000, bands: [], surcharges: [], containerType: '', notes: '' };
     case 'fx': return { ...base, ...validity, currency: 'USD', toCny: 7 };
   }
 }
 export function ResourceEditor({ kind, initial, catalog, save, busy }: { kind: Kind; initial: any; catalog: Catalog; save: (v: any) => void; busy: boolean }) {
-  const [draft, setDraft] = useState<any>(structuredClone(initial));
+  const [draft, setDraft] = useState<any>(()=>({...structuredClone(initial),...(kind==='nodes' ? {country:countryCode(initial.country) ?? ''} : {})}));
   const set = (key: string, value: any) => setDraft((d: any) => ({ ...d, [key]: value }));
   const text = (key: string, label: string, required = false, type = 'text') => <Field key={key} label={label}><input type={type} required={required} value={draft[key] ?? ''} onChange={e => set(key,e.target.value)} maxLength={type === 'date' ? undefined : 200}/></Field>;
   const number = (key: string, label: string, required = false, min = 0) => <Field key={key} label={label}><input type="number" step="any" min={min} required={required} value={draft[key] ?? ''} onChange={e => set(key,e.target.value === '' ? undefined : Number(e.target.value))}/></Field>;
@@ -25,7 +27,7 @@ export function ResourceEditor({ kind, initial, catalog, save, busy }: { kind: K
     <div className="form-grid">
       {kind !== 'fx' && text('name','名称',true)}
       {kind === 'suppliers' && <>{text('contact','联系人 / 联系方式')}</>}
-      {kind === 'nodes' && <>{text('city','城市',true)}{text('country','国家',true)}{select('type','节点类型', Object.entries({ city: '城市覆盖点', warehouse: '仓库', airport: '机场货站', port: '港口', rail: '铁路站', border: '口岸' }).map(([value,label]) => ({value,label})))}{text('timeZone','当地时区（如 Europe/London）',true)}</>}
+      {kind === 'nodes' && <><CountrySelect label="国家" value={draft.country} onChange={country=>setDraft({...draft,country,city:'',cityId:undefined,timeZone:''})}/><CitySelect label="城市" country={draft.country} value={draft.city} cityId={draft.cityId} onChange={(city,cityId,location)=>setDraft({...draft,city,cityId,...(location?.timeZone ? {timeZone:location.timeZone} : {})})}/>{select('type','节点类型', Object.entries({ city: '城市覆盖点', warehouse: '仓库', airport: '机场货站', port: '港口', rail: '铁路站', border: '口岸' }).map(([value,label]) => ({value,label})))}{text('timeZone','当地时区（如 Europe/London）',true)}</>}
       {kind === 'lanes' && <>
         {select('supplierId','供应商',catalog.suppliers.map(s => ({value:s.id,label:s.name})))}
         {select('from','起运节点',catalog.nodes.map(n => ({value:n.id,label:`${n.city} · ${n.name}`})))}

@@ -9,14 +9,14 @@ export function demoCatalog(): Catalog {
     { id: 's-rail', name: '示例 · 中欧铁路', contact: '', notes: '演示数据', version: 1 },
   ];
   const nodes: Catalog['nodes'] = [
-    { id: 'sh', name: '上海城市覆盖点', city: '上海', country: '中国', type: 'city', timeZone: 'Asia/Shanghai', version: 1 },
-    { id: 'cdw', name: '成都集货仓', city: '成都', country: '中国', type: 'warehouse', timeZone: 'Asia/Shanghai', version: 1 },
-    { id: 'ctu', name: '成都机场货站', city: '成都', country: '中国', type: 'airport', timeZone: 'Asia/Shanghai', version: 1 },
-    { id: 'lhr', name: '伦敦机场货站', city: '伦敦', country: '英国', type: 'airport', timeZone: 'Europe/London', version: 1 },
-    { id: 'lon', name: '伦敦城市覆盖点', city: '伦敦', country: '英国', type: 'city', timeZone: 'Europe/London', version: 1 },
-    { id: 'sha-port', name: '上海港', city: '上海', country: '中国', type: 'port', timeZone: 'Asia/Shanghai', version: 1 },
-    { id: 'fel', name: '费利克斯托港', city: '费利克斯托', country: '英国', type: 'port', timeZone: 'Europe/London', version: 1 },
-    { id: 'dui', name: '杜伊斯堡铁路站', city: '杜伊斯堡', country: '德国', type: 'rail', timeZone: 'Europe/Berlin', version: 1 },
+    { id: 'sh', cityId: '1796236', name: '上海城市覆盖点', city: '上海', country: '中国', type: 'city', timeZone: 'Asia/Shanghai', version: 1 },
+    { id: 'cdw', cityId: '1815286', name: '成都集货仓', city: '成都', country: '中国', type: 'warehouse', timeZone: 'Asia/Shanghai', version: 1 },
+    { id: 'ctu', cityId: '1815286', name: '成都机场货站', city: '成都', country: '中国', type: 'airport', timeZone: 'Asia/Shanghai', version: 1 },
+    { id: 'lhr', cityId: '2643743', name: '伦敦机场货站', city: '伦敦', country: '英国', type: 'airport', timeZone: 'Europe/London', version: 1 },
+    { id: 'lon', cityId: '2643743', name: '伦敦城市覆盖点', city: '伦敦', country: '英国', type: 'city', timeZone: 'Europe/London', version: 1 },
+    { id: 'sha-port', cityId: '1796236', name: '上海港', city: '上海', country: '中国', type: 'port', timeZone: 'Asia/Shanghai', version: 1 },
+    { id: 'fel', cityId: '2649579', name: '费利克斯托港', city: '费利克斯托', country: '英国', type: 'port', timeZone: 'Europe/London', version: 1 },
+    { id: 'dui', cityId: '2934691', name: '杜伊斯堡铁路站', city: '杜伊斯堡', country: '德国', type: 'rail', timeZone: 'Europe/Berlin', version: 1 },
   ];
   const base = { validFrom: '2020-01-01', validTo: '2099-12-31', capabilities: Object.fromEntries(cargoFlags.map(f => [f, f === 'batteryInstalled' ? 'yes' : f === 'hazardous' || f === 'batteryOnly' ? 'no' : 'yes'])), maxLengthCm: 1200, maxWidthCm: 350, maxHeightCm: 350, maxPieceKg: 30000, services: [{ name: '装卸', status: 'included' }], notes: '仅用于演示；全部费用和承运参数均为虚构' };
   const lane = (id: string, name: string, from: string, to: string, mode: string, supplierId: string, transitHours: number, scheduled = false) => laneSchema.parse({ ...base, id, name, from, to, mode, supplierId, transitHours, handlingHours: scheduled ? 12 : 2, onDemand: !scheduled, ...(scheduled ? { schedule: { weekdays: mode === 'sea' ? [3, 6] : [1, 3, 5, 0], departureTime: '18:00', timeZone: 'Asia/Shanghai', cutoffHours: 8 } } : {}) });
@@ -39,5 +39,5 @@ export function demoCatalog(): Catalog {
 }
 export function demoDemand(): Demand {
   const ready = new Date(); ready.setUTCDate(ready.getUTCDate() + 1); ready.setUTCHours(0, 0, 0, 0);
-  return { originCity: '上海', destinationCity: '伦敦', readyAt: ready.toISOString(), deadline: new Date(ready.getTime() + 12 * 86400000).toISOString(), cargo: [{ name: '示例机械设备', pieces: 2, lengthCm: 120, widthCm: 100, heightCm: 100, weightKg: 300, stackable: false, upright: true, flags: [], hazardousClass: '', unNumber: '', packaging: '木箱' }], containerType: '', notes: '' };
+  return { originCountry: 'CN', originCityId: '1796236', originCity: '上海', destinationCountry: 'GB', destinationCityId: '2643743', destinationCity: '伦敦', readyAt: ready.toISOString(), deadline: new Date(ready.getTime() + 12 * 86400000).toISOString(), cargo: [{ name: '示例机械设备', pieces: 2, lengthCm: 120, widthCm: 100, heightCm: 100, weightKg: 300, stackable: false, upright: true, flags: [], hazardousClass: '', unNumber: '', packaging: '木箱' }], containerType: '', notes: '' };
 }

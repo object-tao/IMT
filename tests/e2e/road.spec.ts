@@ -2,7 +2,14 @@ import {test,expect,type Page} from '@playwright/test';
 import {estimateRoadTime,type RoadResult,type RoadRequest,type RoadSegment} from '../../shared/road';
 
 async function selectChinaCities(page:Page){
-  await page.goto('/');await page.getByText('陆运距离与时效',{exact:true}).click();
+  await page.goto('/');
+  await expect(page.getByRole('form',{name:'陆运查询'})).toHaveCount(0);
+  const navigation=page.locator('.sidebar nav');
+  await expect(navigation.getByRole('button')).toHaveText(['方案工作台','陆运距离与时效',/资源网络/,/方案档案/]);
+  await navigation.getByRole('button',{name:'陆运距离与时效',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'陆运距离与时效',exact:true})).toBeVisible();
+  await expect(page.locator('.breadcrumb')).toContainText('陆运距离与时效');
+  await expect(page.getByRole('heading',{name:'运输需求',exact:true})).toHaveCount(0);
   const form=page.getByRole('form',{name:'陆运查询'});
   await expect(form.getByRole('combobox',{name:'陆运起运国家',exact:true})).toHaveValue('CN');
   await expect(form.getByRole('combobox',{name:'陆运目的国家',exact:true})).toHaveValue('CN');

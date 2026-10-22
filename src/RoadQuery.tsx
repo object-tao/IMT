@@ -10,7 +10,7 @@ type FormState=Omit<RoadRequest,'originCityId'|'destinationCityId'>&{originCityI
 const initial:FormState={originCountry:'CN',destinationCountry:'CN',originCity:'',destinationCity:'',vehicle:{...truckTemplates[0].vehicle},singleDailyHours:8,dualDailyHours:16,loadingHours:null,waitingHours:null,borderHours:null,allowFerries:false,cargoType:'general'};
 const modeNames={road:'公路',ferry:'轮渡',railFerry:'车辆摆渡列车',waiting:'接口等待'};
 export function RoadQuery(){
-  const [form,setForm]=useState<FormState>(initial),[status,setStatus]=useState<RoadStatus>(),[result,setResult]=useState<RoadResult>(),[busy,setBusy]=useState(false),[error,setError]=useState(''),[open,setOpen]=useState(false);
+  const [form,setForm]=useState<FormState>(initial),[status,setStatus]=useState<RoadStatus>(),[result,setResult]=useState<RoadResult>(),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const revision=useRef(0),requestNumber=useRef(0),alive=useRef(true);
   useEffect(()=>{alive.current=true;void api<RoadStatus>('/road/status').then(s=>{if(alive.current)setStatus(s);}).catch(e=>{if(alive.current)setError(e.message);});return()=>{alive.current=false;};},[]);
   const change=(patch:Partial<FormState>)=>{revision.current++;setForm(f=>({...f,...patch}));setResult(undefined);setError('');};
@@ -23,7 +23,7 @@ export function RoadQuery(){
     finally{if(alive.current&&requestNumber.current===number)setBusy(false);}
   };
   const numberField=(key:keyof Truck,label:string,min:number,max:number,step='any')=><Field key={key} label={label}><input aria-label={label} type="number" required min={min} max={max} step={step} value={String(form.vehicle[key])} onChange={e=>vehicleChange({[key]:Number(e.target.value)})}/></Field>;
-  return <details className="panel road-panel" onToggle={e=>setOpen(e.currentTarget.open)}><summary className="road-summary"><span><TruckIcon size={20}/><strong>陆运距离与时效</strong><span className="badge teal">国内优先 · 美国 / 欧洲</span></span><span>{open ? '收起查询' : '展开查询'} <ArrowRight size={15}/></span></summary>
+  return <><div className="page-intro"><div><div className="eyebrow">ROAD DISTANCE & TRANSIT TIME</div><h1>陆运距离与时效</h1><p>查询城市间货车公路里程，测算单驾与双驾运输时效。</p></div><div className="intro-mark"><TruckIcon size={30}/><span>中国国内 · 美国 · 欧洲</span></div></div><section className="panel road-panel" aria-label="陆运距离与时效查询"><header className="road-summary"><span><TruckIcon size={20}/><strong>城市路线查询</strong><span className="badge teal">国内优先 · 美国 / 欧洲</span></span></header>
     <div className="road-body"><p className="input-hint">选择两个城市，查询推荐货车路线的公路里程，同时测算单驾与双驾时效。无需先录入供应商线路。</p>
       <div className="road-providers">{status?.providers.map(p=><span key={p.id}><span className={`status-dot ${p.configured ? '' : 'pending'}`}/>{p.name}：{p.configured ? '已配置 · 权限待实测' : '待配置'}<a href={p.setupUrl} target="_blank" rel="noopener noreferrer">开通说明 ↗</a></span>)}</div>
       <form aria-label="陆运查询" onSubmit={e=>{e.preventDefault();void submit();}}>
@@ -48,5 +48,5 @@ export function RoadQuery(){
       </section>}
       <details className="road-setup"><summary>数据服务开通与配置指引</summary><ol><li>主要国内查询：在高德创建 Web 服务 Key，并通过商务工单开通“物流服务 API · 货车路径规划高级版”；普通地图 Key 不等于已开通货车服务。需同时允许坐标转换。</li><li>美国与欧洲：在 HERE 创建项目，生成 API Key，并开通 Routing API v8 的 Truck 权限；以账户套餐和地区覆盖为准。</li><li>本机配置：在项目目录执行 <code>npm run road:configure</code>，按提示安全录入密钥，再重启应用。服务器部署时设置 <code>AMAP_TRUCK_KEY</code> / <code>HERE_ROUTING_KEY</code> 环境变量。</li><li>配置后首次查询会检查实际权限。密钥保存在本机配置中，请勿粘贴到聊天、代码或 GitHub。</li></ol><p className="input-hint">默认不缓存第三方路线结果；确认供应商许可后可启用最长 1 小时的内存缓存。当前只预设中国大陆境内、美国境内及欧洲区域，中国跨境需按口岸分段核实。</p></details>
     </div>
-  </details>;
+  </section></>;
 }

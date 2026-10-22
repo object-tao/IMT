@@ -7,6 +7,7 @@ import { api } from './api';
 import { Field, Busy, fmt, dateTime, inputDate } from './components';
 import { CountrySelect, CitySelect } from './LocationFields';
 import { countryName, sameCity } from '../shared/geography';
+import { RoadQuery } from './RoadQuery';
 export function freshDemand(): Demand { const example = demoDemand(); return { ...example, originCountry: 'CN', originCity: '', originCityId: undefined, destinationCountry: '', destinationCity: '', destinationCityId: undefined, deadline: undefined, cargo: [{ ...example.cargo[0], name: '', pieces: 1, weightKg: 100 }], notes: '' }; }
 export function ModeIcon({ mode, size = 16 }: { mode: string; size?: number }) { const Icon = mode === 'air' ? Plane : mode === 'sea' ? Ship : mode === 'rail' ? TrainFront : Truck; return <Icon size={size}/>; }
 export function Planner({ catalog, demand, setDemand, openCandidate, report, busy, run }: { catalog: Catalog; demand: Demand; setDemand: (d: Demand) => void; openCandidate: (c: Candidate,r: Demand) => void; report: (s: string) => void; busy: boolean; run: (fn: () => Promise<void>) => void }) {
@@ -17,6 +18,7 @@ export function Planner({ catalog, demand, setDemand, openCandidate, report, bus
   const items = result?.candidates.filter(c => filter === 'all' || (filter === 'complete' ? c.complete : !c.complete)) ?? [];
   return <>
     <div className="page-intro"><div><div className="eyebrow">MULTIMODAL PLANNING</div><h1>每一程，都有更好的连接。</h1><p>从运输需求出发，组合资源，找到适合的交付方案。</p></div><div className="intro-mark"><Route size={30}/><span>公路 · 铁路 · 航空 · 海运</span></div></div>
+    <RoadQuery/>
     <div className="planning-layout">
       <form className="panel demand-panel" onSubmit={e => { e.preventDefault(); run(async () => { const data = await api<SolveResult>('/solve','POST',demand); setComputed(structuredClone(demand)); setResult(data); setFilter('all'); report(`已生成 ${data.candidates.length} 个候选方案`); }); }}>
         <div className="panel-heading"><div><h2>运输需求</h2><p>输入城市、货物与交付要求</p></div><span className="step-label">01 / INPUT</span></div>

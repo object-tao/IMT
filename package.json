@@ -7,6 +7,7 @@
     "node": ">=24.14.0 <25"
   },
   "scripts": {
+    "road:configure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-road.ps1",
     "geo:sync": "node --env-file-if-exists=.env --import tsx scripts/sync-geography.ts",
     "geo:build": "tsx scripts/build-geography.ts",
     "dev": "node --env-file-if-exists=.env node_modules/concurrently/dist/bin/concurrently.js -k \"tsx watch server/index.ts\" \"vite --host 127.0.0.1\"",

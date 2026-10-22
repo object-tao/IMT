@@ -12,11 +12,12 @@ import { Store, AppError } from './store.js';
 import { kinds, schemas, requestSchema, nodeSchema } from '../shared/model.js';
 import { countries, countryCode } from '../shared/geography.js';
 import { Geography } from './geography.js';
+import { RoadService } from './road.js';
 import { solve, evaluatePath } from '../shared/engine.js';
 import { demoCatalog } from '../shared/demo.js';
 import { exportDocx, exportHtml } from './export.js';
 
-export async function createApp(options: { database?: Database; geography?: Geography; password?: string; secret?: string; secureCookie?: boolean; logger?: boolean; clientDir?: string } = {}) {
+export async function createApp(options: { database?: Database; geography?: Geography; road?: RoadService; password?: string; secret?: string; secureCookie?: boolean; logger?: boolean; clientDir?: string } = {}) {
   const password = options.password ?? process.env.AUTH_PASSWORD;
   const secret = options.secret ?? process.env.SESSION_SECRET ?? randomBytes(32).toString('hex');
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: 5 * 1024 * 1024, requestTimeout: 30000 });
@@ -25,6 +26,7 @@ export async function createApp(options: { database?: Database; geography?: Geog
   await db.query('CREATE TABLE IF NOT EXISTS auth_sessions (token_hash TEXT PRIMARY KEY, expires_at TEXT NOT NULL)');
   const store = new Store(db);
   const geography=options.geography ?? new Geography();
+  const road=options.road ?? new RoadService();
   await store.migrateGeography(geography);
   await app.register(cookie, { secret });
   await app.register(helmet, { contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'"], styleSrc: ["'self'", "'unsafe-inline'"], imgSrc: ["'self'", 'data:'], connectSrc: ["'self'"], frameAncestors: ["'none'"] } } });
@@ -50,6 +52,7 @@ export async function createApp(options: { database?: Database; geography?: Geog
   });
   app.setErrorHandler((err, req, reply) => {
     if (err instanceof ZodError) return reply.code(400).send({ message: err.issues.map(i => `${i.path.join('.')}：${i.message}`).join('；') });
+    if (err instanceof AppError) return reply.code(err.statusCode).send({message:err.message});
     const error = err as Error & { statusCode?: number };
     if (error.statusCode && error.statusCode < 500) return reply.code(error.statusCode).send({ message: error.message });
     req.log.error(err);
@@ -72,6 +75,8 @@ export async function createApp(options: { database?: Database; geography?: Geog
     reply.clearCookie('imt_session', { path: '/' }); return { ok: true };
   });
   app.get('/api/catalog', async () => store.catalog());
+  app.get('/api/road/status',async()=>road.status());
+  app.post('/api/road/query',{config:{rateLimit:{max:20,timeWindow:'1 minute'}}},async req=>road.query(req.body,geography));
   app.get('/api/geo/countries',async()=>({items:countries,metadata:geography.metadata(),available:geography.available}));
   app.get('/api/geo/cities',async req=>{
     const query=z.object({country:z.string().length(2),q:z.string().max(100).default(''),offset:z.coerce.number().int().min(0).max(10000000).default(0),limit:z.coerce.number().int().min(1).max(100).default(40)}).parse(req.query);

@@ -11,6 +11,9 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
       DATABASE_URL: ${DATABASE_URL:-}
       DATABASE_FILE: /app/data/imt.sqlite
+      AMAP_TRUCK_KEY: ${AMAP_TRUCK_KEY:-}
+      HERE_ROUTING_KEY: ${HERE_ROUTING_KEY:-}
+      ROAD_CACHE_TTL_SECONDS: ${ROAD_CACHE_TTL_SECONDS:-0}
     volumes:
       - imt-data:/app/data
     security_opt:

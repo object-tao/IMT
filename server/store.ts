@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Database, type Sql } from './database.js';
 import { schemas, kinds, emptyCatalog,airportNode, type Kind, type Catalog, type SavedPlan, type Demand,type Airport } from '../shared/model.js';
 import { evaluatePath } from '../shared/engine.js';
+import type { PlanningContext } from '../shared/connections.js';
 import { upgradePlanLocation, type Geography } from './geography.js';
 
 export class AppError extends Error { constructor(public statusCode: number, message: string) { super(message); } }
@@ -136,10 +137,10 @@ export class Store {
     });
   }
   async saveDemand(request: Demand) { const id = randomUUID(); await this.db.query('INSERT INTO demands(id,payload,created_at) VALUES(?,?,?)', [id, JSON.stringify(request), new Date().toISOString()]); return id; }
-  async savePlan(input: { request: Demand; laneIds: string[]; title: string; notes: string; groupId?: string; expectedVersion?: number }) {
+  async savePlan(input: { request: Demand; laneIds: string[]; title: string; notes: string; groupId?: string; expectedVersion?: number }, planningContext?: PlanningContext) {
     return this.db.transaction(async tx => {
       const catalog = await this.catalog(tx);
-      const candidate = evaluatePath(catalog, input.request, input.laneIds);
+      const candidate = evaluatePath(catalog, input.request, input.laneIds, planningContext);
       const groupId = input.groupId ?? randomUUID();
       const previous = await tx.query('SELECT version FROM plan_versions WHERE group_id=? ORDER BY version DESC LIMIT 1', [groupId]);
       const latest = previous[0]?.version ?? 0;

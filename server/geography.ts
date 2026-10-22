@@ -2,7 +2,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { countryCode, normalizeCity, type GeoCity, type GeoMetadata } from '../shared/geography.js';
-import type { Demand, TransportNode, SavedPlan } from '../shared/model.js';
+import type { Catalog, Demand, TransportNode, SavedPlan } from '../shared/model.js';
+import type { PlanningContext } from '../shared/connections.js';
 import { AppError } from './store.js';
 
 export class Geography {
@@ -44,6 +45,10 @@ export class Geography {
     if(!destination || destination.country!==request.destinationCountry)throw new AppError(400,'目的城市与国家不匹配，或城市名称不明确，请从候选城市中选择');
     if(origin.id===destination.id)throw new AppError(400,'起运地与目的地不能是同一城市');
     return {...request,originCity:origin.name,originCityId:origin.id,destinationCity:destination.name,destinationCityId:destination.id};
+  }
+  planningContext(request: Demand, catalog: Catalog): PlanningContext {
+    const ids = new Set([request.originCityId, request.destinationCityId, ...catalog.nodes.map(node => node.cityId)]);
+    return { cities: [...ids].filter((id): id is string => !!id).map(id => this.get(id)).filter((city): city is GeoCity => !!city) };
   }
   close(){this.db?.close();}
 }

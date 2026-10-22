@@ -22,7 +22,7 @@ export function Planner({ catalog, demand, setDemand, openCandidate, report, bus
       <form className="panel demand-panel" onSubmit={e => { e.preventDefault(); run(async () => { const data = await api<SolveResult>('/solve','POST',demand); setComputed(structuredClone(demand)); setResult(data); setFilter('all'); report(`已生成 ${data.candidates.length} 个候选方案`); }); }}>
         <div className="panel-heading"><div><h2>运输需求</h2><p>输入城市、货物与交付要求</p></div><span className="step-label">01 / INPUT</span></div>
         <div className="route-input"><CountrySelect label="起运国家" value={demand.originCountry} onChange={originCountry=>setDemand({...demand,originCountry,originCity:'',originCityId:undefined})}/><CitySelect label="起运城市" country={demand.originCountry} value={demand.originCity} cityId={demand.originCityId} onChange={(originCity,originCityId)=>setDemand({...demand,originCity,originCityId})}/><div className="route-input-line"><span/><ArrowRight size={14}/><span/></div><CountrySelect label="目的国家" value={demand.destinationCountry} onChange={destinationCountry=>setDemand({...demand,destinationCountry,destinationCity:'',destinationCityId:undefined})}/><CitySelect label="目的城市" country={demand.destinationCountry} value={demand.destinationCity} cityId={demand.destinationCityId} onChange={(destinationCity,destinationCityId)=>setDemand({...demand,destinationCity,destinationCityId})}/></div>
-        <p className="input-hint">可选择全球地名库中的城市；运输方案根据已维护线路生成。</p>
+        <p className="input-hint">可选择全球地名库中的城市；系统组合已维护线路，并按需提出目的地公路转运建议，供进一步落实资源。</p>
         <div className="form-grid"><Field label="最早可提货时间"><input aria-label="最早可提货时间" type="datetime-local" required value={inputDate(demand.readyAt)} onChange={e => { if(e.target.value) update('readyAt',new Date(e.target.value).toISOString()); }}/></Field><Field label="最晚要求送达（可选）"><input aria-label="最晚要求送达" type="datetime-local" value={demand.deadline ? inputDate(demand.deadline) : ''} onChange={e => update('deadline',e.target.value ? new Date(e.target.value).toISOString() : undefined)}/></Field></div>
         <p className="input-hint">输入时间采用设备当地时区，方案结果统一展示北京时间。</p>
         <div className="section-heading"><h3><Package size={16}/>货物明细</h3><span>{cargo.pieces} 件 · {fmt(cargo.kg.toNumber())} kg · {fmt(cargo.cbm.toNumber())} m³</span></div>
@@ -41,10 +41,10 @@ export function Planner({ catalog, demand, setDemand, openCandidate, report, bus
         <p className="input-hint center">根据已维护资源计算 · 不自动确认舱位及运力</p>
       </form>
       <section className="result-area"><div className="result-heading"><div><h2>候选方案 {result && <span className="count-pill">{result.candidates.length}</span>}</h2><p>{computed ? `${countryName(computed.originCountry)}·${computed.originCity} → ${countryName(computed.destinationCountry)}·${computed.destinationCity} · ${computed.cargo.length} 组货物` : '完整的路径，透明的取舍。'}</p></div>{result && <select aria-label="方案筛选" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">全部方案</option><option value="complete">资料完整</option><option value="pending">待补全 / 待确认</option></select>}</div>
-        {!result ? <div className="empty-planner"><NetworkIllustration/><div className="eyebrow">CONNECT THE POSSIBILITIES</div><h2>让分散的资源，成为完整的方案。</h2><p>填写左侧需求，系统会连接供应商线路，<br/>比较参考费用、时效和适运条件。</p><div className="empty-features"><span><CircleCheck size={16}/>承运条件校验</span><span><Clock3 size={16}/>班期衔接</span><span><Route size={16}/>多路径比较</span></div></div> : <>
+        {!result ? <div className="empty-planner"><NetworkIllustration/><div className="eyebrow">CONNECT THE POSSIBILITIES</div><h2>让分散的资源，成为完整的方案。</h2><p>填写左侧需求，系统会连接供应商线路，<br/>并按需提出目的地公路转运建议。<br/>待落实的资源、费用与时效会明确标注。</p><div className="empty-features"><span><CircleCheck size={16}/>承运条件校验</span><span><Clock3 size={16}/>班期衔接</span><span><Route size={16}/>多路径比较</span></div></div> : <>
           {result.diagnostics.length > 0 && <div className="notice warning">{result.diagnostics.map((d,i) => <p key={i}><CircleAlert size={15}/>{d}</p>)}</div>}
           {items.map((c,i) => <CandidateCard key={c.id} candidate={c} index={i} open={() => openCandidate(c,computed!)}/>)}
-          {!items.length && <div className="empty-small"><Route size={30}/><h3>暂无匹配方案</h3><p>检查运输资源、货物限制及有效期，或调整筛选条件。</p></div>}
+          {!items.length && <div className="empty-small"><Route size={30}/><h3>暂无匹配方案</h3><p>检查运输资源、货物限制及有效期，或调整筛选条件。系统可按需提出目的地公路转运建议，仍需有可衔接的已维护线路。</p></div>}
           {items.length > 0 && <p className="result-footnote">费用与时效基于当前维护资料。推荐仅在本次候选方案中比较；待确认方案不参与完整方案推荐。</p>}
         </>}
       </section>
@@ -57,10 +57,11 @@ function CandidateCard({ candidate: c,index,open }: { candidate: Candidate; inde
   return <article className={`candidate-card ${c.badges.length ? 'recommended' : ''}`}>
     <div className="candidate-top"><span className="candidate-number">方案 {String(index + 1).padStart(2,'0')}</span><div className="badges">{c.badges.map(b => <span key={b} className="badge teal">{b}</span>)}<span className={`badge ${c.complete ? 'neutral' : 'amber'}`}>{c.complete ? '资料完整' : '待确认'}</span></div></div>
     <h3 className="city-path">{cities.map((city,i) => <span key={i}>{i > 0 && <ArrowRight size={15}/>} {city}</span>)}</h3>
-    <div className="mode-route">{c.legs.map((l,i) => <span key={i} className={l.missing ? 'missing-leg' : ''}><ModeIcon mode={l.mode}/>{l.missing ? '缺失接驳' : modeNames[l.mode]}{i < c.legs.length - 1 && <span className="route-dash"/>}</span>)}</div>
+    <div className="mode-route">{c.legs.map((l,i) => <span key={i} className={l.missing ? 'missing-leg' : ''}><ModeIcon mode={l.mode}/>{l.laneId.startsWith('road-gap|') ? '公路转运待落实' : l.missing ? '缺失接驳' : modeNames[l.mode]}{i < c.legs.length - 1 && <span className="route-dash"/>}</span>)}</div>
     {c.legs.filter(l=>l.flight).map((l,i)=><p className="candidate-flight" key={i}>航班 {l.flight!.rule.flightNumber} · 撤轮 {dateTime(l.flight!.offBlockAt)}（北京时间）{l.timingUnknown?' · 衔接待确认':''}</p>)}
     <div className="candidate-metrics"><div><small>{c.priceComplete ? '运输段参考费用' : '已知费用小计'}</small><strong><span>¥</span>{fmt(c.knownCny)}</strong>{!c.priceComplete && <em>部分费用待补充</em>}</div><div><small>{!timingKnown(c) ? '已知段参考运输耗时' : '预计总耗时'}</small><strong>{fmt(c.hours / 24)}<span> 天</span></strong><em>{timingKnown(c)?`${dateTime(c.arrival)} 预计到达`:'送达时间待确认'}</em></div><div className="candidate-action"><button className="button secondary" onClick={open}>查看与调整<ArrowRight size={15}/></button></div></div>
     {timingKnown(c) && c.lateHours > 0 && <div className="candidate-alert"><Clock3 size={14}/>按已知耗时预计晚到 {fmt(c.lateHours / 24)} 天</div>}
+    {c.legs.some(l => l.laneId.startsWith('road-gap|')) && <div className="candidate-alert"><CircleAlert size={14}/>含公路转运建议，需落实供应商，并确认货物适运、通行条件、费用与时效。</div>}
     {!c.complete && <div className="candidate-alert"><CircleAlert size={14}/>{c.warnings.length} 项资料待确认，请查看详情</div>}
   </article>;
 }

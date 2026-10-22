@@ -4,6 +4,7 @@ import { nextDeparture, zoneDate, localToEpoch } from './time.js';
 import { priceRate, totals } from './pricing.js';
 import { sameCity } from './geography.js';
 import { nextFlight,selectionId } from './flights.js';
+import { destinationRoadConnection, emptyPlanningContext, roadConnectionLeg, type PlanningContext } from './connections.js';
 
 function compatibility(lane: Lane, request: Demand): { warnings: string[]; errors: string[] } {
   const warnings: string[] = [], errors: string[] = [];
@@ -86,24 +87,32 @@ function summarize(legs: Leg[], request: Demand): Candidate {
   const lateHours = timingComplete&&request.deadline ? Math.max(0, (Date.parse(arrival) - Date.parse(request.deadline)) / 3600000) : 0;
   return { id: legs.map(selectionId).join('>'), legs, warnings, complete,timingComplete, priceComplete, knownCny, ...(priceComplete ? { totalCny: knownCny } : {}), arrival, hours, lateHours, badges: [] };
 }
-function network(catalog: Catalog, request: Demand) {
+function network(catalog: Catalog, request: Demand, context: PlanningContext) {
   const origin = catalog.nodes.filter(n => sameCity(n,{country:request.originCountry,city:request.originCity,cityId:request.originCityId})), destination = catalog.nodes.filter(n => sameCity(n,{country:request.destinationCountry,city:request.destinationCity,cityId:request.destinationCityId}));
   const cityNode = (id: string, city: string, representative: TransportNode): TransportNode => ({ id, version: 1, name: `${city}城市覆盖点`, city, cityId:representative.cityId, country: representative.country, type: 'city', timeZone: representative.timeZone });
   const originCityNodes = origin.filter(n => n.type === 'city'), destinationCityNodes = destination.filter(n => n.type === 'city');
   const starts = originCityNodes.length ? originCityNodes : origin.length ? [cityNode('__origin__', request.originCity, origin[0])] : [];
-  const ends = destinationCityNodes.length ? destinationCityNodes : destination.length ? [cityNode('__destination__', request.destinationCity, destination[0])] : [];
+  const destinationCity = context.cities.find(city => city.id === request.destinationCityId && city.country === request.destinationCountry);
+  const destinationReference = destination[0] ?? (destinationCity ? { id:'__destination__',version:1,name:destinationCity.name,city:destinationCity.name,cityId:destinationCity.id,country:destinationCity.country,type:'city' as const,timeZone:destinationCity.timeZone } : undefined);
+  const ends = destinationCityNodes.length ? destinationCityNodes : destinationReference ? [cityNode('__destination__', request.destinationCity, destinationReference)] : [];
   const nodes = [...catalog.nodes, ...starts.filter(n => n.id === '__origin__'), ...ends.filter(n => n.id === '__destination__')];
   return { starts, ends, nodes };
 }
-export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[]): Candidate {
+export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[], context: PlanningContext = emptyPlanningContext()): Candidate {
   if (!laneIds.length || laneIds.length > 8) throw new Error('方案运输段数量必须为 1–8 段');
-  const { starts, ends, nodes } = network(catalog, request);
+  const { starts, ends, nodes } = network(catalog, request, context);
+  const canSuggestRoad = destinationRoadConnection(catalog, request, context, ends);
   const legs: Leg[] = [];
   const visited = new Set<string>();
-  for (const id of laneIds) {
+  for (const [index, id] of laneIds.entries()) {
     let leg: Leg | undefined;
     const earliest = legs.length ? Date.parse(legs.at(-1)!.arrival) : Date.parse(request.readyAt);
-    if (id.startsWith('gap|')) {
+    if (id.startsWith('road-gap|')) {
+      const parts = id.split('|');
+      const from = nodes.find(node => node.id === parts[1]), to = nodes.find(node => node.id === parts[2]);
+      if (index !== laneIds.length - 1 || parts.length !== 3 || !from || !to || !canSuggestRoad(from, to, legs.at(-1))) throw new Error('无效的待落实公路转运段，请按当前运输资源重新生成方案');
+      leg = roadConnectionLeg(from, to, earliest, request);
+    } else if (id.startsWith('gap|')) {
       const [, a, b] = id.split('|');
       const from = nodes.find(n => n.id === a), to = nodes.find(n => n.id === b);
       if (!from || !to || !sameCity(from,to) || from.id === to.id) throw new Error('无效的待补全接驳段');
@@ -126,8 +135,9 @@ export function evaluatePath(catalog: Catalog, request: Demand, laneIds: string[
   if (!ends.some(n => n.id === legs.at(-1)!.to.id)) throw new Error('方案未到达目的城市覆盖点');
   return summarize(legs, request);
 }
-export function solve(catalog: Catalog, request: Demand): SolveResult {
-  const { starts, ends, nodes } = network(catalog, request);
+export function solve(catalog: Catalog, request: Demand, context: PlanningContext = emptyPlanningContext()): SolveResult {
+  const { starts, ends, nodes } = network(catalog, request, context);
+  const canSuggestRoad = destinationRoadConnection(catalog, request, context, ends);
   const endIds = new Set(ends.map(n => n.id));
   const candidates: Candidate[] = [], rejected = new Set<string>();
   let explored = 0, truncated = false;
@@ -146,6 +156,13 @@ export function solve(catalog: Catalog, request: Demand): SolveResult {
         const evaluated = makeLeg(lane, request, catalog, earliest,flightId);
         if (!evaluated.leg) { rejected.add(`${lane.name}：${evaluated.reason}`); continue; }
         walk(evaluated.leg.to, [...legs, propagateTiming(evaluated.leg,legs)], new Set([...visited, lane.to]), gaps);
+        if (truncated) return;
+      }
+    }
+    for (const end of ends) {
+      if (!visited.has(end.id) && canSuggestRoad(current, end, legs.at(-1))) {
+        const leg = roadConnectionLeg(current, end, earliest, request);
+        walk(end, [...legs, leg], new Set([...visited, end.id]), gaps);
         if (truncated) return;
       }
     }
@@ -174,6 +191,7 @@ export function solve(catalog: Catalog, request: Demand): SolveResult {
   const diagnostics = [...(!starts.length ? ['起运城市没有运输节点，请先维护资源'] : []), ...(!ends.length ? ['目的城市没有运输节点，请先维护资源'] : [])];
   if (!candidates.length) diagnostics.push('未找到可衔接的方案，请检查方向、节点、承运限制、班期和有效期', ...[...rejected].slice(0, 20));
   if (truncated) diagnostics.push('已达到搜索上限，结果为候选子集；推荐仅在本次已找到的方案中比较');
+  if (candidates.some(c => c.legs.some(l => l.laneId.startsWith('road-gap|')))) diagnostics.push('已发现可通过目的地区域公路转运继续完善的方案；公路供应商、道路可行性、费用及送达时间待确认');
   if (candidates.some(c => !c.timingComplete)) diagnostics.push('含缺失接驳或未知班期的方案仅展示框架，发运、衔接及送达时间待确认');
   return { candidates, diagnostics, truncated, explored };
 }

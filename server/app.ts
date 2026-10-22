@@ -114,18 +114,25 @@ export async function createApp(options: { database?: Database; geography?: Geog
   app.post('/api/solve', async req => {
     const request = geography.bindDemand(requestSchema.parse(req.body));
     const demandId = await store.saveDemand(request);
-    return { ...solve(await store.catalog(), request), demandId };
+    const catalog = await store.catalog();
+    return { ...solve(catalog, request, geography.planningContext(request, catalog)), demandId };
   });
   app.post('/api/evaluate', async req => {
     const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8) }).parse(req.body);
-    try { return evaluatePath(await store.catalog(), geography.bindDemand(body.request), body.laneIds); }
+    try {
+      const catalog = await store.catalog(), request = geography.bindDemand(body.request);
+      return evaluatePath(catalog, request, body.laneIds, geography.planningContext(request, catalog));
+    }
     catch (e) { throw new AppError(400, (e as Error).message); }
   });
   app.get('/api/plans', async () => store.plans());
   app.get('/api/plans/:id', async req => store.plan((req.params as { id: string }).id));
   app.post('/api/plans', async req => {
     const body = z.object({ request: requestSchema, laneIds: z.array(z.string()).min(1).max(8), title: z.string().trim().min(1).max(200), notes: z.string().max(2000).default(''), groupId: z.string().optional(), expectedVersion: z.number().int().nonnegative().optional() }).parse(req.body);
-    try { return await store.savePlan({...body,request:geography.bindDemand(body.request)}); } catch (e) { if (e instanceof AppError) throw e; throw new AppError(400, (e as Error).message); }
+    try {
+      const request = geography.bindDemand(body.request), catalog = await store.catalog();
+      return await store.savePlan({...body,request},geography.planningContext(request,catalog));
+    } catch (e) { if (e instanceof AppError) throw e; throw new AppError(400, (e as Error).message); }
   });
   app.get('/api/plans/:id/export', async (req, reply) => {
     const { id } = req.params as { id: string }, query = z.object({ format: z.enum(['docx', 'html']), audience: z.enum(['internal', 'customer']) }).parse(req.query);

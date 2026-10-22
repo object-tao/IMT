@@ -15,7 +15,8 @@ describe('API 与文档隔离', () => {
       const solved = await app.inject({method:'POST',url:'/api/solve',cookies,payload:demoDemand()});
       expect(solved.statusCode).toBe(200); expect(solved.json().candidates.length).toBeGreaterThan(0);
       const c = solved.json().candidates[0];
-      const saved = await app.inject({method:'POST',url:'/api/plans',cookies,payload:{request:demoDemand(),laneIds:c.legs.map((l:any) => l.laneId),title:'客户运输方案',notes:'SECRET-INTERNAL-NOTE'}});
+      const request = demoDemand(); request.cargo[0].flags = ['batteryInstalled']; request.notes = '收货前联系客户';
+      const saved = await app.inject({method:'POST',url:'/api/plans',cookies,payload:{request,laneIds:c.legs.map((l:any) => l.laneId),title:'客户运输方案',notes:'SECRET-INTERNAL-NOTE'}});
       expect(saved.statusCode).toBe(200); const id = saved.json().id;
       const customer = await app.inject({url:`/api/plans/${id}/export?format=html&audience=customer`,cookies});
       expect(customer.statusCode).toBe(200); expect(customer.body).not.toContain('SECRET-INTERNAL-NOTE'); expect(customer.body).not.toContain('示例 ·');
@@ -23,7 +24,7 @@ describe('API 与文档隔离', () => {
       expect(internal.body).toContain('SECRET-INTERNAL-NOTE'); expect(internal.body).toContain('示例 ·');
       const doc = await app.inject({url:`/api/plans/${id}/export?format=docx&audience=customer`,cookies});
       const zip = await JSZip.loadAsync(doc.rawPayload), xml = await zip.file('word/document.xml')!.async('string');
-      expect(xml).toContain('客户运输方案'); expect(xml).not.toContain('SECRET-INTERNAL-NOTE'); expect(xml).not.toContain('示例 ·');
+      expect(xml).toContain('客户运输方案'); expect(xml).toContain('内置电池'); expect(xml).toContain('收货前联系客户'); expect(xml).not.toContain('SECRET-INTERNAL-NOTE'); expect(xml).not.toContain('示例 ·');
       expect((await app.inject({method:'POST',url:'/api/solve',cookies,payload:{}})).statusCode).toBe(400);
       await app.inject({method:'POST',url:'/api/logout',cookies,payload:{}});
       expect((await app.inject({url:'/api/catalog',cookies})).statusCode).toBe(401);

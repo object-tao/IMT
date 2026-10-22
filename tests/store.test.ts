@@ -2,6 +2,8 @@ import { beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { Database } from '../server/database.js';
 import { Store } from '../server/store.js';
 import { demoCatalog, demoDemand } from '../shared/demo.js';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { resolve, join, sep } from 'node:path';
 let db: Database, store: Store;
 beforeEach(async () => {
   db = new Database(process.env.TEST_DATABASE_URL ? {url:process.env.TEST_DATABASE_URL} : {file:':memory:'});
@@ -36,5 +38,22 @@ describe('资源及方案持久化', () => {
     await store.importCatalog(demoCatalog());
     await expect(store.importCatalog(demoCatalog())).rejects.toThrow('已存在');
     await expect(store.importCatalog(demoCatalog(),true)).rejects.toThrow('空资源库');
+  });
+  it('SQLite 在线备份可重新打开并恢复资源', async () => {
+    const root = resolve('.local'); mkdirSync(root,{recursive:true});
+    const folder = mkdtempSync(join(root,'backup-test-'));
+    const source = new Database({file:join(folder,'source.sqlite')});
+    let restored: Database | undefined;
+    try {
+      await source.initialize(); const sourceStore = new Store(source);
+      await sourceStore.importCatalog(demoCatalog());
+      await source.sqliteBackup(join(folder,'backup.sqlite'));
+      restored = new Database({file:join(folder,'backup.sqlite')});
+      expect((await new Store(restored).catalog()).lanes).toHaveLength(demoCatalog().lanes.length);
+    } finally {
+      await source.close(); await restored?.close();
+      if (!folder.startsWith(root + sep)) throw new Error('Unexpected cleanup path');
+      rmSync(folder,{recursive:true});
+    }
   });
 });

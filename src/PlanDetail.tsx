@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Save, RotateCw, Plus, Trash2, FileDown, Printer } from 'lucide-react';
-import { modeNames, unitNames, type Candidate, type Catalog, type Demand, type SavedPlan } from '../shared/model';
+import { modeNames, unitNames, flagNames, type Candidate, type Catalog, type Demand, type SavedPlan } from '../shared/model';
 import { api } from './api';
 import { Field, Busy, fmt, dateTime } from './components';
 import { ModeIcon } from './Planner';
@@ -8,6 +8,7 @@ export function PlanDetail({ initial, request, catalog, saved, run, busy, report
   const [candidate,setCandidate] = useState(initial), [laneIds,setLaneIds] = useState(initial.legs.map(l => l.laneId)), [title,setTitle] = useState(saved?.title ?? `${request.originCity}至${request.destinationCity}运输方案`), [notes,setNotes] = useState(saved?.notes ?? ''), [current,setCurrent] = useState(saved), [dirty,setDirty] = useState(false), [audience,setAudience] = useState('customer');
   const changed = (ids: string[]) => { setLaneIds(ids); setDirty(true); };
   return <div className="plan-detail"><div className="detail-banner"><div><span className={`badge ${candidate.complete ? 'teal' : 'amber'}`}>{candidate.complete ? '已知资料校验通过' : '待补全 / 待确认'}</span><h2>{request.originCity}<ArrowRight size={22}/>{request.destinationCity}</h2><p>{candidate.legs.length} 个运输段 · {fmt(candidate.hours / 24)} 天已知耗时 · 北京时间展示</p></div><div><small>{candidate.priceComplete ? '运输段参考费用' : '已知费用小计'}</small><strong>¥ {fmt(candidate.knownCny)}</strong>{candidate.lateHours > 0 && <span className="late-text">预计晚到 {fmt(candidate.lateHours / 24)} 天</span>}</div></div>
+    <div className="notice">{request.cargo.map((c,i) => <p key={i}>{c.name} · {c.pieces} 件 · 单件 {c.lengthCm} × {c.widthCm} × {c.heightCm} cm / {c.weightKg} kg · {c.stackable ? '可堆叠' : '不可堆叠'} · {c.upright ? '保持直立' : '可调整朝向'}{c.flags.length ? ` · ${c.flags.map(f => flagNames[f]).join('、')}` : ''}{c.unNumber ? ` · ${c.unNumber}` : ''}</p>)}{request.notes && <p>运输要求：{request.notes}</p>}</div>
     {current && <p className="notice">已保存版本 V{current.version} · {dateTime(current.createdAt)}。导出使用该已保存版本。</p>}
     <div className="form-grid"><Field label="方案名称"><input maxLength={200} required value={title} onChange={e => setTitle(e.target.value)}/></Field><Field label="内部备注（客户版隐藏）"><input maxLength={2000} value={notes} onChange={e => setNotes(e.target.value)}/></Field></div>
     <div className="section-heading"><h3>运输路径与资源调整</h3><button disabled={busy} className="button secondary small" onClick={() => run(async () => { const result = await api<Candidate>('/evaluate','POST',{request,laneIds}); setCandidate(result); setDirty(false); report('已按当前资源重新校验'); })}><RotateCw size={14}/>重新校验</button></div>

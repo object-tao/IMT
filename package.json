@@ -22,7 +22,7 @@
     "@fastify/cookie": "^11.0.2",
     "@fastify/helmet": "^13.0.2",
     "@fastify/rate-limit": "^10.3.0",
-    "@fastify/static": "^10.1.7",
+    "@fastify/static": "^10.1.8",
     "decimal.js": "^10.6.0",
     "docx": "^9.5.1",
     "fast-xml-parser": "^5.11.2",
